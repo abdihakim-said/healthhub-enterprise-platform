@@ -1,0 +1,28 @@
+# Example terraform.tfvars for bootstrap module
+# Copy this file to terraform.tfvars and customize as needed
+
+# AWS Configuration
+aws_region   = "us-east-1"
+project_name = "healthhub"
+
+# Environments that will use this backend
+environments = ["dev", "staging", "prod"]
+
+# Retention Settings
+state_retention_days = 90  # Keep old state versions for 90 days
+log_retention_days   = 30  # Keep CloudWatch logs for 30 days
+
+# Security Settings
+enable_point_in_time_recovery = true
+enable_mfa_delete            = false  # Set to true if MFA is configured
+
+# Optional: Use custom KMS key for encryption
+# kms_key_id = "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012"
+
+# Additional tags for all resources
+additional_tags = {
+  Owner       = "DevOps Team"
+  CostCenter  = "Engineering"
+  Compliance  = "HIPAA"
+  Backup      = "Required"
+}
