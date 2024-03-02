@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "outDir": "dist",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "typeRoots": [
+      "./src/@types/*",
+      "./node_modules/@types"
+    ],
+    "target": "es6",
+    "module": "commonjs",
+    "allowJs": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "strictPropertyInitialization": false
+  },
+  "include": [
+    "**/**.ts",
+    "**/**.js",
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
