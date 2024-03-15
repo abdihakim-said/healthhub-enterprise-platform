@@ -1,0 +1,102 @@
+service: hh-patient
+plugins:
+  - serverless-webpack
+custom:
+  webpack:
+    includeModules: true
+    packager: "npm"
+    excludeFiles: src/**/*.test.js
+provider:
+  name: aws
+  runtime: nodejs18.x
+  timeout: 29
+  versionFunctions: false
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'us-east-1'}
+  environment:
+    PATIENT_TABLE: ${self:service}-${self:provider.stage}-patients
+    # USER_POOL_ID: ${cf:healthhub-auth-${self:provider.stage}.UserPoolId}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+        - dynamodb:DescribeTable
+      Resource: "*"
+    - Effect: Allow
+      Action:
+        - cognito-idp:AdminGetUser
+      Resource: "*"
+  httpApi:
+    id:
+      "Fn::ImportValue": HH-HttpAPI-${sls:stage}
+functions:
+  # Dashboard-compatible patient handlers
+  createPatient:
+    handler: src/handlers/patientDashboard.create
+    events:
+      - httpApi:
+          path: /patients
+          method: post
+
+  getPatient:
+    handler: src/handlers/patientDashboard.get
+    events:
+      - httpApi:
+          path: /patients/{id}
+          method: get
+
+  updatePatient:
+    handler: src/handlers/patientDashboard.update
+    events:
+      - httpApi:
+          path: /patients/{id}
+          method: put
+
+  deletePatient:
+    handler: src/handlers/patientDashboard.remove
+    events:
+      - httpApi:
+          path: /patients/{id}
+          method: delete
+
+  listPatients:
+    handler: src/handlers/patientDashboard.list
+    events:
+      - httpApi:
+          path: /patients
+          method: get
+
+  addMedicalHistory:
+    handler: src/handlers/patientDashboard.addMedicalHistory
+    events:
+      - httpApi:
+          path: /patients/{id}/medical-history
+          method: post
+
+resources:
+  Resources:
+    PatientsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.PATIENT_TABLE}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: userId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: UserIdIndex
+            KeySchema:
+              - AttributeName: userId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+        BillingMode: PAY_PER_REQUEST
