@@ -1,0 +1,18 @@
+{
+    "name": "healthhub-appointment-service",
+    "version": "1.0.0",
+    "dependencies": {
+        "@types/aws-lambda": "^8.10.85",
+        "serverless-webpack": "^5.5.5",
+        "ts-loader": "^9.2.6",
+        "typescript": "^4.4.4",
+        "webpack": "^5.64.0",
+        "webpack-node-externals": "^3.0.0",
+        "aws-sdk": "^2.1030.0",
+        "dynamoose": "^2.8.5",
+        "@google-cloud/speech": "^4.10.0",
+        "@google-cloud/vision": "^2.4.2",
+        "axios": "^0.24.0",
+        "uuid": "^3.3.2"
+    }
+}
