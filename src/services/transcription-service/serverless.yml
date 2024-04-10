@@ -1,0 +1,123 @@
+service: hh-transcription
+plugins:
+  - serverless-webpack
+custom:
+  webpack:
+    includeModules: true
+    packager: "npm"
+    excludeFiles: src/**/*.test.js
+provider:
+  name: aws
+  runtime: nodejs18.x
+  timeout: 29
+  versionFunctions: false
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'us-east-1'}
+  apiGateway:
+    binaryMediaTypes:
+      - "multipart/form-data"
+  environment:
+    # Secrets Manager secret names (secure approach)
+    AZURE_SECRET_NAME: "healthhub/${self:provider.stage}/azure-speech-credentials"
+    TRANSCRIPTION_TABLE: ${self:service}-${self:provider.stage}-transcriptions
+    
+    # NO HARDCODED CREDENTIALS - SECRETS MANAGER ONLY
+  iamRoleStatements:
+    # DynamoDB permissions
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+        - dynamodb:DescribeTable
+      Resource: "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TRANSCRIPTION_TABLE}"
+    
+    # CRITICAL: Secrets Manager permissions
+    - Effect: Allow
+      Action:
+        - secretsmanager:GetSecretValue
+        - secretsmanager:DescribeSecret
+      Resource: 
+        - "arn:aws:secretsmanager:${self:provider.region}:*:secret:healthhub/${self:provider.stage}/azure-speech-credentials*"
+        - "arn:aws:secretsmanager:${self:provider.region}:*:secret:healthhub/dev/azure-speech-credentials*" 
+        - "arn:aws:secretsmanager:${self:provider.region}:*:secret:healthhub/${self:provider.stage}/azure-speech-credentials*"
+    - Effect: Allow
+      Action:
+        - kms:Decrypt
+        - kms:DescribeKey
+      Resource: "*"
+      Condition:
+        StringEquals:
+          "kms:ViaService": "secretsmanager.${self:provider.region}.amazonaws.com"
+  httpApi:
+    id:
+      "Fn::ImportValue": HH-HttpAPI-${sls:stage}
+functions:
+  # Clean handlers with best practices - Secrets Manager only
+  transcribeAudio:
+    handler: src/handlers/transcription.transcribeAudio
+    events:
+      - httpApi:
+          path: /transcriptions/transcribe
+          method: post
+
+  create:
+    handler: src/handlers/transcription.create
+    events:
+      - httpApi:
+          path: /transcriptions
+          method: post
+
+  get:
+    handler: src/handlers/transcription.get
+    events:
+      - httpApi:
+          path: /transcriptions/{id}
+          method: get
+
+  list:
+    handler: src/handlers/transcription.list
+    events:
+      - httpApi:
+          path: /transcriptions
+          method: get
+
+  update:
+    handler: src/handlers/transcription.update
+    events:
+      - httpApi:
+          path: /transcriptions/{id}
+          method: put
+
+  delete:
+    handler: src/handlers/transcription.remove
+    events:
+      - httpApi:
+          path: /transcriptions/{id}
+          method: delete
+
+resources:
+  Resources:
+    TranscriptionTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.TRANSCRIPTION_TABLE}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: patientId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: PatientIdIndex
+            KeySchema:
+              - AttributeName: patientId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+        BillingMode: PAY_PER_REQUEST
