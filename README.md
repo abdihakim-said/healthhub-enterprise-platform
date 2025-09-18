@@ -1,5 +1,7 @@
 # 🏥 HealthHub: Enterprise Multi-Cloud Healthcare Platform
 
+![HealthHub Architecture](./architecture/health-hub-architecture%20copy.tiff)
+
 [![Build Status](https://github.com/abdihakimsaid/healthhub/workflows/CI/badge.svg)](https://github.com/abdihakimsaid/healthhub/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![AWS](https://img.shields.io/badge/AWS-Multi--Cloud-orange)](https://aws.amazon.com/)
