@@ -2,7 +2,7 @@
 
 ![HealthHub Architecture](./architecture/health-hub-architecture.png)
 
-[![Build Status](https://github.com/abdihakim-said/healthhub-enterprise-platform/workflows/CI/badge.svg)](https://github.com/abdihakim-said/healthhub-enterprise-platform/actions)
+[![Deployment Status](https://img.shields.io/badge/Deployment-Production%20Ready-brightgreen)](https://github.com/abdihakim-said/healthhub-enterprise-platform)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![AWS](https://img.shields.io/badge/AWS-Multi--Cloud-orange)](https://aws.amazon.com/)
 [![Terraform](https://img.shields.io/badge/Terraform-Infrastructure-purple)](https://terraform.io/)
