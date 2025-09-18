@@ -1,0 +1,15 @@
+services:
+  user-service:
+    path: src/services/user-service
+  ai-interaction-service:
+    path: src/services/ai-interaction-service
+  appointment-service:
+    path: src/services/appointment-service
+  doctor-service:
+    path: src/services/doctor-service
+  medical-image-service:
+    path: src/services/medical-image-service
+  patient-service:
+    path: src/services/patient-service
+  transcription-service:
+    path: src/services/transcription-service

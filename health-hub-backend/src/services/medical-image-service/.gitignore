@@ -1,0 +1,4 @@
+node_modules/
+.serverless/
+*.log
+google-credentials.json

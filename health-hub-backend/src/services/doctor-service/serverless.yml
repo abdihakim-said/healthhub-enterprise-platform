@@ -1,0 +1,102 @@
+service: hh-doctor
+plugins:
+  - serverless-webpack
+custom:
+  webpack:
+    includeModules: true
+    packager: "npm"
+    excludeFiles: src/**/*.test.js
+provider:
+  name: aws
+  runtime: nodejs18.x
+  timeout: 29
+  versionFunctions: false
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'us-east-1'}
+  environment:
+    DOCTOR_TABLE: ${self:service}-${self:provider.stage}-doctors
+    # USER_POOL_ID: ${cf:healthhub-auth-${self:provider.stage}.UserPoolId}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+        - dynamodb:DescribeTable
+      Resource: "*"
+    - Effect: Allow
+      Action:
+        - cognito-idp:AdminGetUser
+      Resource: "*"
+  httpApi:
+    id:
+      "Fn::ImportValue": HH-HttpAPI-${sls:stage}
+functions:
+  createDoctor:
+    handler: src/handlers/doctor.create
+    events:
+      - httpApi:
+          path: /doctors
+          method: post
+
+  getDoctor:
+    handler: src/handlers/doctor.get
+    events:
+      - httpApi:
+          path: /doctors/{id}
+          method: get
+
+  updateDoctor:
+    handler: src/handlers/doctor.update
+    events:
+      - httpApi:
+          path: /doctors/{id}
+          method: put
+
+  deleteDoctor:
+    handler: src/handlers/doctor.del
+    events:
+      - httpApi:
+          path: /doctors/{id}
+          method: delete
+
+  listDoctors:
+    handler: src/handlers/doctor.list
+    events:
+      - httpApi:
+          path: /doctors
+          method: get
+
+resources:
+  Resources:
+    DoctorsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.DOCTOR_TABLE}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: userId
+            AttributeType: S
+          - AttributeName: specialization
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: UserIdIndex
+            KeySchema:
+              - AttributeName: userId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: SpecializationIndex
+            KeySchema:
+              - AttributeName: specialization
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+        BillingMode: PAY_PER_REQUEST

@@ -1,0 +1,29 @@
+{
+    "name": "healthhub-ai-interaction-service",
+    "version": "1.0.0",
+    "scripts": {
+        "build": "webpack",
+        "deploy": "serverless deploy"
+    },
+    "dependencies": {
+        "@google-cloud/speech": "^7.2.0",
+        "@google-cloud/vision": "^5.3.3",
+        "@types/aws-lambda": "^8.10.124",
+        "aws-sdk": "^2.1475.0",
+        "axios": "^1.5.1",
+        "dynamoose": "^2.8.5",
+        "openai": "^4.55.6",
+        "protobufjs": "^6.11.4",
+        "ts-loader": "^9.5.0",
+        "typescript": "^5.2.2",
+        "uuid": "^8.3.2",
+        "webpack": "^5.89.0",
+        "webpack-node-externals": "^3.0.0"
+    },
+    "devDependencies": {
+        "@types/uuid": "^8.3.4",
+        "fork-ts-checker-webpack-plugin": "^9.0.2",
+        "serverless-webpack": "^5.15.0",
+        "webpack-cli": "^5.1.4"
+    }
+}

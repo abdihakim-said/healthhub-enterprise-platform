@@ -1,0 +1,173 @@
+service: hh-ai-interaction
+plugins:
+  - serverless-webpack
+custom:
+  webpack:
+    includeModules: true
+    packager: "npm"
+    excludeFiles: src/**/*.test.js
+provider:
+  name: aws
+  runtime: nodejs18.x
+  timeout: 29
+  versionFunctions: false
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'us-east-1'}
+  environment:
+    # Secrets Manager secret names (best practice - secure)
+    OPENAI_SECRET_NAME: "healthhub/${self:provider.stage}/openai-credentials"
+    AZURE_SECRET_NAME: "healthhub/${self:provider.stage}/azure-speech-credentials"
+    S3_BUCKET: hh-${self:provider.stage}-${aws:accountId}-ai-interaction
+    AI_INTERACTION_TABLE: ${self:service}-${self:provider.stage}-ai-interactions
+  iamRoleStatements:
+    # DynamoDB permissions
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+        - dynamodb:DescribeTable
+      Resource: "*"
+    
+    # S3 permissions
+    - Effect: Allow
+      Action:
+        - s3:PutObject
+        - s3:GetObject
+        - s3:DeleteObject
+        - s3:ListBucket
+        - s3:GetObjectVersion
+        - s3:PutObjectAcl
+      Resource:
+        - "arn:aws:s3:::${self:provider.environment.S3_BUCKET}"
+        - "arn:aws:s3:::${self:provider.environment.S3_BUCKET}/*"
+    
+    # AWS AI services permissions
+    - Effect: Allow
+      Action:
+        - polly:SynthesizeSpeech
+        - translate:TranslateText
+        - comprehend:DetectDominantLanguage
+      Resource: "*"
+    
+    # Secrets Manager permissions
+    - Effect: Allow
+      Action:
+        - secretsmanager:GetSecretValue
+        - secretsmanager:DescribeSecret
+      Resource: 
+        - "arn:aws:secretsmanager:${self:provider.region}:*:secret:healthhub/${self:provider.stage}/openai-credentials*"
+        - "arn:aws:secretsmanager:${self:provider.region}:*:secret:healthhub/${self:provider.stage}/azure-speech-credentials*"
+        - "arn:aws:secretsmanager:${self:provider.region}:*:secret:healthhub/${self:provider.stage}/google-vision-credentials*"
+    
+    # KMS permissions for Secrets Manager
+    - Effect: Allow
+      Action:
+        - kms:Decrypt
+        - kms:DescribeKey
+      Resource: "*"
+      Condition:
+        StringEquals:
+          "kms:ViaService": "secretsmanager.${self:provider.region}.amazonaws.com"
+  httpApi:
+    id:
+      "Fn::ImportValue": HH-HttpAPI-${self:provider.stage}
+functions:
+  # Basic AI interaction handlers
+  create:
+    handler: src/handlers/aiInteraction.create
+    events:
+      - httpApi:
+          path: /ai-interactions
+          method: post
+  get:
+    handler: src/handlers/aiInteraction.get
+    events:
+      - httpApi:
+          path: /ai-interactions/{id}
+          method: get
+  update:
+    handler: src/handlers/aiInteraction.update
+    events:
+      - httpApi:
+          path: /ai-interactions/{id}
+          method: put
+  delete:
+    handler: src/handlers/aiInteraction.del
+    events:
+      - httpApi:
+          path: /ai-interactions/{id}
+          method: delete
+  list:
+    handler: src/handlers/aiInteraction.list
+    events:
+      - httpApi:
+          path: /ai-interactions
+          method: get
+  processVirtualAssistant:
+    handler: src/handlers/aiInteraction.virtualAssistant
+    events:
+      - httpApi:
+          path: /ai-interactions/virtual-assistant
+          method: post
+  textToSpeech:
+    handler: src/handlers/aiInteraction.textToSpeech
+    events:
+      - httpApi:
+          path: /ai-interactions/text-to-speech
+          method: post
+
+resources:
+  Resources:
+    AIInteractionTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.AI_INTERACTION_TABLE}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: userId
+            AttributeType: S
+          - AttributeName: interactionType
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: UserIdIndex
+            KeySchema:
+              - AttributeName: userId
+                KeyType: HASH
+              - AttributeName: interactionType
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+        BillingMode: PAY_PER_REQUEST
+    AIInteractionBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:provider.environment.S3_BUCKET}
+        OwnershipControls:
+          Rules:
+            - ObjectOwnership: ObjectWriter
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: false
+          BlockPublicPolicy: false
+          IgnorePublicAcls: false
+          RestrictPublicBuckets: false
+        CorsConfiguration:
+          CorsRules:
+            - AllowedHeaders:
+                - "*"
+              AllowedMethods:
+                - GET
+                - PUT
+                - POST
+                - DELETE
+                - HEAD
+              AllowedOrigins:
+                - "*"
+              MaxAge: 3000

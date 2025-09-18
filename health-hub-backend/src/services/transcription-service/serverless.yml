@@ -1,0 +1,84 @@
+service: hh-transcription
+plugins:
+  - serverless-webpack
+custom:
+  webpack:
+    includeModules: true
+    packager: "npm"
+    excludeFiles: src/**/*.test.js
+provider:
+  name: aws
+  runtime: nodejs18.x
+  timeout: 29
+  versionFunctions: false
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'us-east-1'}
+  apiGateway:
+    binaryMediaTypes:
+      - "multipart/form-data"
+  environment:
+    TRANSCRIPTION_TABLE: ${self:service}-${self:provider.stage}-transcriptions
+    AZURE_SECRET_NAME: "healthhub/${self:provider.stage}/azure-speech-credentials"
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+        - dynamodb:DescribeTable
+      Resource: "*"
+    - Effect: Allow
+      Action:
+        - secretsmanager:GetSecretValue
+        - secretsmanager:DescribeSecret
+      Resource: 
+        - "arn:aws:secretsmanager:${self:provider.region}:*:secret:healthhub/${self:provider.stage}/azure-speech-credentials*"
+  httpApi:
+    id:
+      "Fn::ImportValue": HH-HttpAPI-${sls:stage}
+functions:
+  createTranscription:
+    handler: src/handlers/transcription.create
+    events:
+      - httpApi:
+          path: /transcriptions
+          method: post
+
+  getTranscription:
+    handler: src/handlers/transcription.get
+    events:
+      - httpApi:
+          path: /transcriptions/{id}
+          method: get
+
+  updateTranscription:
+    handler: src/handlers/transcription.update
+    events:
+      - httpApi:
+          path: /transcriptions/{id}
+          method: put
+
+  deleteTranscription:
+    handler: src/handlers/transcription.del
+    events:
+      - httpApi:
+          path: /transcriptions/{id}
+          method: delete
+
+  listTranscriptions:
+    handler: src/handlers/transcription.list
+    events:
+      - httpApi:
+          path: /transcriptions
+          method: get
+
+  transcribeAudio:
+    handler: src/handlers/transcription.transcribeAudio
+    events:
+      - httpApi:
+          path: /transcriptions/transcribe
+          method: post
+    payloadFormatVersion: "2.0"

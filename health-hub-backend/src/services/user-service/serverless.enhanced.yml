@@ -1,0 +1,175 @@
+service: hh-user
+configValidationMode: warn
+plugins:
+  - serverless-webpack
+custom:
+  webpack:
+    includeModules: true
+    packager: "npm"
+    excludeFiles: src/**/*.test.js
+provider:
+  name: aws
+  runtime: nodejs18.x
+  timeout: 29
+  versionFunctions: false
+  apiGateway:
+    binaryMediaTypes:
+      - "multipart/form-data"
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'us-east-1'}
+  environment:
+    USER_TABLE: ${self:service}-${self:provider.stage}-users
+    USER_POOL_ID: { Ref: UserPool }
+    CLIENT_ID: { Ref: UserClient }
+    PATIENT_TABLE: hh-patient-${self:provider.stage}-patients
+    DOCTOR_TABLE: hh-doctor-${self:provider.stage}-doctors
+
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+        - dynamodb:DescribeTable
+      Resource: "*"
+    - Effect: Allow
+      Action:
+        - cognito-idp:AdminCreateUser
+        - cognito-idp:AdminDeleteUser
+        - cognito-idp:AdminUpdateUserAttributes
+        - cognito-idp:AdminInitiateAuth
+        - cognito-idp:AdminGetUser
+        - cognito-idp:AdminSetUserPassword
+      Resource: "*"
+  httpApi:
+    useProviderTags: true
+    cors: true
+
+functions:
+  createUser:
+    handler: src/handlers/user.create
+    events:
+      - httpApi:
+          path: /users
+          method: post
+
+  getUser:
+    handler: src/handlers/user.get
+    events:
+      - httpApi:
+          path: /users/{id}
+          method: get
+
+  updateUser:
+    handler: src/handlers/user.update
+    events:
+      - httpApi:
+          path: /users/{id}
+          method: put
+
+  deleteUser:
+    handler: src/handlers/user.del
+    events:
+      - httpApi:
+          path: /users/{id}
+          method: delete
+
+  listUsers:
+    handler: src/handlers/user.list
+    events:
+      - httpApi:
+          path: /users
+          method: get
+
+  login:
+    handler: src/handlers/auth.login
+    events:
+      - httpApi:
+          path: /login
+          method: post
+  register:
+    handler: src/handlers/auth.register
+    events:
+      - httpApi:
+          path: /register
+          method: post
+resources:
+  Resources:
+    UsersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.USER_TABLE}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: cognitoId
+            AttributeType: S
+          - AttributeName: email
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: CognitoIdIndex
+            KeySchema:
+              - AttributeName: cognitoId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: EmailIndex
+            KeySchema:
+              - AttributeName: email
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+        BillingMode: PAY_PER_REQUEST
+
+    UserPool:
+      Type: AWS::Cognito::UserPool
+      Properties:
+        UserPoolName: ${self:service}-pool-${sls:stage}
+        Schema:
+          - Name: email
+            Required: true
+            Mutable: true
+          - AttributeDataType: String
+            Mutable: true
+            Name: role
+          - AttributeDataType: String
+            Mutable: true
+            Name: id
+        UserPoolTags:
+          My: "true"
+        Policies:
+          PasswordPolicy:
+            MinimumLength: 6
+        AutoVerifiedAttributes: ["email"]
+
+    UserClient:
+      Type: AWS::Cognito::UserPoolClient
+      Properties:
+        ClientName: ${self:service}-client-${sls:stage}
+        GenerateSecret: false
+        UserPoolId:
+          Ref: UserPool
+        AccessTokenValidity: 24
+        IdTokenValidity: 24
+        ExplicitAuthFlows:
+          - "ADMIN_NO_SRP_AUTH"
+
+  # Outputs:
+  #   HHApiId:
+  #     Value:
+  #       Fn::GetAtt:
+  #         - HttpApi
+  #         - ApiId
+  #     Export:
+  #       Name: HH-HttpAPI-${sls:stage}
+  Outputs:
+    HttpApiId:
+      Value: !Ref HttpApi
+      Export:
+        Name: HH-HttpAPI-${sls:stage}

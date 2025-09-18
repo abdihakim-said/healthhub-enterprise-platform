@@ -1,0 +1,94 @@
+service: hh-patient
+plugins:
+  - serverless-webpack
+custom:
+  webpack:
+    includeModules: true
+    packager: "npm"
+    excludeFiles: src/**/*.test.js
+provider:
+  name: aws
+  runtime: nodejs18.x
+  timeout: 29
+  versionFunctions: false
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'us-east-1'}
+  environment:
+    PATIENT_TABLE: ${self:service}-${self:provider.stage}-patients
+    USER_POOL_ID: ${cf:hh-user-${self:provider.stage}.UserPoolId}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+        - dynamodb:DescribeTable
+      Resource: "*"
+    - Effect: Allow
+      Action:
+        - cognito-idp:AdminGetUser
+      Resource: "*"
+  httpApi:
+    id:
+      "Fn::ImportValue": HH-HttpAPI-${sls:stage}
+functions:
+  createPatient:
+    handler: src/handlers/patient.create
+    events:
+      - httpApi:
+          path: /patients
+          method: post
+
+  getPatient:
+    handler: src/handlers/patient.get
+    events:
+      - httpApi:
+          path: /patients/{id}
+          method: get
+
+  updatePatient:
+    handler: src/handlers/patient.update
+    events:
+      - httpApi:
+          path: /patients/{id}
+          method: put
+
+  deletePatient:
+    handler: src/handlers/patient.del
+    events:
+      - httpApi:
+          path: /patients/{id}
+          method: delete
+
+  listPatients:
+    handler: src/handlers/patient.list
+    events:
+      - httpApi:
+          path: /patients
+          method: get
+
+resources:
+  Resources:
+    PatientsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.PATIENT_TABLE}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: userId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: UserIdIndex
+            KeySchema:
+              - AttributeName: userId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+        BillingMode: PAY_PER_REQUEST

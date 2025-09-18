@@ -1,0 +1,75 @@
+service: hh-ai-interaction
+
+plugins:
+  - serverless-webpack
+
+custom:
+  webpack:
+    includeModules: true
+    packager: "npm"
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  timeout: 29
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'us-east-1'}
+  environment:
+    AI_INTERACTION_TABLE: ${self:service}-${self:provider.stage}-ai-interactions
+    S3_BUCKET: hh-${self:provider.stage}-${aws:accountId}-ai-interaction
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.AI_INTERACTION_TABLE}"
+    - Effect: Allow
+      Action:
+        - s3:PutObject
+        - s3:GetObject
+        - s3:DeleteObject
+      Resource:
+        - "arn:aws:s3:::${self:provider.environment.S3_BUCKET}"
+        - "arn:aws:s3:::${self:provider.environment.S3_BUCKET}/*"
+
+functions:
+  create:
+    handler: src/handlers/aiInteraction.create
+    events:
+      - httpApi:
+          path: /ai-interactions
+          method: post
+  get:
+    handler: src/handlers/aiInteraction.get
+    events:
+      - httpApi:
+          path: /ai-interactions/{id}
+          method: get
+
+resources:
+  Resources:
+    AIInteractionTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.AI_INTERACTION_TABLE}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+    
+    S3Bucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:provider.environment.S3_BUCKET}
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: true
+          BlockPublicPolicy: true
+          IgnorePublicAcls: true
+          RestrictPublicBuckets: true

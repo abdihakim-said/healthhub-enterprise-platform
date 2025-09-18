@@ -1,0 +1,63 @@
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Build artifacts
+dist/
+build/
+.serverless/
+coverage/
+*.log
+
+# Terraform
+terraform.tfstate*
+.terraform/
+*.tfplan
+.terraform.lock.hcl
+
+# Environment files
+.env
+.env.local
+.env.production
+google-credentials.json
+
+# System files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Personal/Interview content
+docs/interview/
+docs/linkedin/
+docs/marketing/
+*linkedin*.md
+*interview*.md
+*CV_*.md
+*BEHAVIORAL_*.md
+*COMPETENCY_*.md
+
+# Development/Testing files
+localstack-data/
+test-*.js
+test-*.cjs
+*test-google-vision*
+
+# Package lock files (optional - keep only one)
+package-lock.json
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+*.backup
+
+# Git files
+.git/
+ORIG_HEAD
+FETCH_HEAD
+COMMIT_EDITMSG

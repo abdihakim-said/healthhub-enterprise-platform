@@ -1,0 +1,104 @@
+service: hh-appointment
+plugins:
+  - serverless-webpack
+custom:
+  webpack:
+    includeModules: true
+    packager: "npm"
+    excludeFiles: src/**/*.test.js
+provider:
+  name: aws
+  runtime: nodejs18.x
+  timeout: 29
+  versionFunctions: false
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'us-east-1'}
+  environment:
+    APPOINTMENT_TABLE: ${self:service}-${self:provider.stage}-appointments
+    # USER_POOL_ID: ${cf:healthhub-auth-${self:provider.stage}.UserPoolId}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+        - dynamodb:DescribeTable
+      Resource: "*"
+  httpApi:
+    id:
+      "Fn::ImportValue": HH-HttpAPI-${sls:stage}
+functions:
+  createAppointment:
+    handler: src/handlers/appointment.create
+    events:
+      - httpApi:
+          path: /appointments
+          method: post
+
+  getAppointment:
+    handler: src/handlers/appointment.get
+    events:
+      - httpApi:
+          path: /appointments/{id}
+          method: get
+
+  updateAppointment:
+    handler: src/handlers/appointment.update
+    events:
+      - httpApi:
+          path: /appointments/{id}
+          method: put
+
+  deleteAppointment:
+    handler: src/handlers/appointment.del
+    events:
+      - httpApi:
+          path: /appointments/{id}
+          method: delete
+
+  listAppointments:
+    handler: src/handlers/appointment.list
+    events:
+      - httpApi:
+          path: /appointments
+          method: get
+
+resources:
+  Resources:
+    AppointmentsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.APPOINTMENT_TABLE}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: patientId
+            AttributeType: S
+          - AttributeName: doctorId
+            AttributeType: S
+          - AttributeName: dateTime
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: PatientIdIndex
+            KeySchema:
+              - AttributeName: patientId
+                KeyType: HASH
+              - AttributeName: dateTime
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+          - IndexName: DoctorIdIndex
+            KeySchema:
+              - AttributeName: doctorId
+                KeyType: HASH
+              - AttributeName: dateTime
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+        BillingMode: PAY_PER_REQUEST
