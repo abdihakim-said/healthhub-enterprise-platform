@@ -10,7 +10,7 @@
 [![SRE Ready](https://img.shields.io/badge/SRE-Production%20Ready-blue)](https://sre.google/)
 
 ## 🚀 Live Production System
-**🌐 Frontend**: https://d3dxe0vf0g9rlg.cloudfront.net  
+**🌐 Frontend**: https://d1aylx7zsl7bap.cloudfront.net  
 **📊 SLA Status**: ✅ 99.94% Uptime | 10,000+ Daily Users | Zero Security Incidents  
 **📖 API Documentation**: [Interactive Swagger UI](./health-hub-backend/src/services/user-service/docs/)
 
@@ -90,7 +90,7 @@ Our healthcare client faced critical operational challenges:
 | **Authentication** | ![Sign In Portal](./screenshots/ai-speech-converter.png) | Secure Amazon Cognito authentication with demo access |
 
 ### Production System Validation
-- **Live URL**: https://d3dxe0vf0g9rlg.cloudfront.net
+- **Live URL**: https://d1aylx7zsl7bap.cloudfront.net
 - **Real AI Integration**: OpenAI GPT-3.5-turbo, Azure Speech API, Google Vision API
 - **Multi-Cloud Architecture**: AWS + Azure + Google Cloud + OpenAI
 - **Enterprise Security**: Amazon Cognito with HIPAA compliance
