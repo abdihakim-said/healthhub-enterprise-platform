@@ -21,7 +21,7 @@ const MedicalRecords = ({ userId }) => {
           aiSpeechResponse,
         ] = await Promise.all([
           transcriptionService.getTranscriptions({ patientId: userId }),
-          medicalImageService.getMedicalImages({ patientId: userId }),
+          medicalImageService.getMedicalImages(),
           aiInteractionService.getAIInteractions({
             params: {
               userId,
@@ -29,9 +29,15 @@ const MedicalRecords = ({ userId }) => {
             },
           }),
         ]);
-        setTranscriptions(transcriptionsResponse.data);
-        setMedicalImages(medicalImagesResponse.data);
-        setAiSpeech(aiSpeechResponse.data);
+        
+        // Filter all data by userId/patientId
+        const userTranscriptions = transcriptionsResponse.data?.filter(t => t.userId === userId || t.patientId === userId) || [];
+        const userMedicalImages = medicalImagesResponse.data?.filter(img => img.patientId === userId) || [];
+        const userAiSpeech = aiSpeechResponse.data?.filter(ai => ai.userId === userId && ai.interactionType === "speechConversion") || [];
+        
+        setTranscriptions(userTranscriptions);
+        setMedicalImages(userMedicalImages);
+        setAiSpeech(userAiSpeech);
       } catch (error) {
         console.error("Error fetching medical records:", error);
       } finally {

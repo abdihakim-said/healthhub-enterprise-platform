@@ -33,13 +33,13 @@ const Dashboard = () => {
             patientService.getPatients(),
             doctorService.getDoctors(),
             appointmentService.getAppointments(),
-            aiInteractionService.getAIInteractions(),
+            aiInteractionService.getAIInteractions(), // Get all AI interactions for dashboard
           ]);
 
         setTotalPatients(patients.data.length);
         setTotalDoctors(doctors.data.length);
         setTotalAppointments(appointments.data.length);
-        setTotalAIInteractions(aiInteractions.data.length);
+        setTotalAIInteractions(aiInteractions.data?.length || aiInteractions.length || 0);
 
         // Simulating data for the chart
         setData([

@@ -156,7 +156,10 @@ export const aiInteractionService = {
     aiApi.post("/ai-interactions/text-to-speech", { text, language }),
   
   // CRUD operations
-  getAIInteractions: (userId) => aiApi.get(`/ai-interactions?userId=${userId}`),
+  getAIInteractions: (userId) => {
+    const url = userId ? `/ai-interactions?userId=${userId}` : '/ai-interactions';
+    return aiApi.get(url);
+  },
   getAIInteraction: (id) => aiApi.get(`/ai-interactions/${id}`),
   createAIInteraction: (data) => aiApi.post("/ai-interactions", data),
   updateAIInteraction: (id, data) => aiApi.put(`/ai-interactions/${id}`, data),

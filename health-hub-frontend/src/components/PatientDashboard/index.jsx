@@ -49,7 +49,7 @@ const PatientDashboard = ({ userId }) => {
           // Filter appointments for this patient
           const appointmentsData = appointmentsResponse.data || appointmentsResponse;
           const filteredAppointments = appointmentsData?.filter(
-            apt => apt.patientId === demoPatientId && apt.status === "scheduled"
+            apt => apt.patientId === userId && apt.status === "scheduled"
           ) || [];
           
           setUpcomingAppointments(filteredAppointments);
