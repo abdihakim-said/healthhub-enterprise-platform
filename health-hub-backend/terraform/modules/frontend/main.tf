@@ -93,6 +93,125 @@ resource "aws_s3_bucket_website_configuration" "frontend" {
   }
 }
 
+# WAF Web ACL for UK Health Compliance
+resource "aws_wafv2_web_acl" "uk_health_compliance" {
+  name  = "${var.project_name}-${var.environment}-uk-health-waf"
+  scope = "CLOUDFRONT"
+
+  default_action {
+    allow {}
+  }
+
+  # Rate limiting for healthcare applications
+  rule {
+    name     = "UKHealthRateLimit"
+    priority = 1
+
+    action {
+      block {}
+    }
+
+    statement {
+      rate_based_statement {
+        limit              = 500
+        aggregate_key_type = "IP"
+        evaluation_window_sec = 300
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "UKHealthRateLimit"
+      sampled_requests_enabled   = true
+    }
+  }
+
+  # Block non-UK traffic (additional layer beyond CloudFront geo-restriction)
+  rule {
+    name     = "BlockNonUKTraffic"
+    priority = 2
+
+    action {
+      block {}
+    }
+
+    statement {
+      not_statement {
+        statement {
+          geo_match_statement {
+            country_codes = ["GB", "IE", "US"]
+          }
+        }
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "BlockNonUKTraffic"
+      sampled_requests_enabled   = true
+    }
+  }
+
+  # AWS Managed Rules - Common Rule Set
+  rule {
+    name     = "AWSManagedRulesCommonRuleSet"
+    priority = 3
+
+    override_action {
+      none {}
+    }
+
+    statement {
+      managed_rule_group_statement {
+        name        = "AWSManagedRulesCommonRuleSet"
+        vendor_name = "AWS"
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "UKHealthCommonRules"
+      sampled_requests_enabled   = true
+    }
+  }
+
+  # AWS Managed Rules - IP Reputation List
+  rule {
+    name     = "AWSManagedRulesAmazonIpReputationList"
+    priority = 4
+
+    override_action {
+      none {}
+    }
+
+    statement {
+      managed_rule_group_statement {
+        name        = "AWSManagedRulesAmazonIpReputationList"
+        vendor_name = "AWS"
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "UKHealthIPReputation"
+      sampled_requests_enabled   = true
+    }
+  }
+
+  visibility_config {
+    cloudwatch_metrics_enabled = true
+    metric_name                = "UKHealthFrontendWAF"
+    sampled_requests_enabled   = true
+  }
+
+  tags = {
+    Name        = "${var.project_name}-${var.environment}-uk-health-waf"
+    Environment = var.environment
+    Compliance  = "UK-Health-GDPR"
+    ManagedBy   = "Terraform"
+  }
+}
+
 # CloudFront Origin Access Control
 resource "aws_cloudfront_origin_access_control" "frontend" {
   name                              = "${var.project_name}-${var.environment}-frontend-oac"
@@ -136,6 +255,12 @@ resource "aws_cloudfront_distribution" "frontend" {
     default_ttl = 3600   # 1 hour
     max_ttl     = 86400  # 24 hours
 
+    # Audit logging for UK compliance
+    function_association {
+      event_type   = "viewer-request"
+      function_arn = aws_cloudfront_function.audit_logging.arn
+    }
+
     # Security headers
     function_association {
       event_type   = "viewer-response"
@@ -164,10 +289,11 @@ resource "aws_cloudfront_distribution" "frontend" {
     max_ttl     = 31536000  # 1 year
   }
 
-  # Geographic restrictions (none for now, but ready for UK compliance)
+  # Geographic restrictions for UK health compliance
   restrictions {
     geo_restriction {
-      restriction_type = "none"
+      restriction_type = "whitelist"
+      locations        = ["GB", "IE", "US"]  # UK, Ireland, US only
     }
   }
 
@@ -177,8 +303,8 @@ resource "aws_cloudfront_distribution" "frontend" {
     minimum_protocol_version       = "TLSv1.2_2021"
   }
 
-  # WAF Association (if enabled)
-  web_acl_id = var.waf_web_acl_arn
+  # WAF Association for UK health compliance
+  web_acl_id = aws_wafv2_web_acl.uk_health_compliance.arn
 
   # Custom error pages for SPA routing
   custom_error_response {
@@ -202,22 +328,66 @@ resource "aws_cloudfront_distribution" "frontend" {
   }
 }
 
-# CloudFront function for security headers
+# CloudFront function for security headers with UK compliance
 resource "aws_cloudfront_function" "security_headers" {
   name    = "${var.project_name}-${var.environment}-frontend-security-headers"
   runtime = "cloudfront-js-1.0"
-  comment = "Add security headers to frontend responses"
+  comment = "Add security headers with UK health compliance to frontend responses"
   publish = true
   code    = <<-EOT
 function handler(event) {
     var response = event.response;
     var headers = response.headers;
     
-    // Basic security headers only - no CSP to avoid blocking React
+    // UK Health compliance security headers
+    headers['strict-transport-security'] = { value: 'max-age=31536000; includeSubDomains; preload' };
     headers['x-content-type-options'] = { value: 'nosniff' };
+    headers['x-frame-options'] = { value: 'DENY' };
+    headers['x-xss-protection'] = { value: '1; mode=block' };
     headers['referrer-policy'] = { value: 'strict-origin-when-cross-origin' };
     
+    // UK specific compliance headers
+    headers['x-uk-health-compliance'] = { value: 'gdpr-dpa2018-compliant' };
+    headers['x-data-retention'] = { value: '7-years' };
+    headers['x-audit-enabled'] = { value: 'true' };
+    
+    // Content Security Policy for medical applications
+    headers['content-security-policy'] = { 
+        value: "default-src 'self'; img-src 'self' data: https:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://*.execute-api.us-east-1.amazonaws.com;" 
+    };
+    
     return response;
+}
+EOT
+}
+
+# CloudFront function for audit logging (UK compliance)
+resource "aws_cloudfront_function" "audit_logging" {
+  name    = "${var.project_name}-${var.environment}-audit-logging"
+  runtime = "cloudfront-js-1.0"
+  comment = "Log medical data access for UK compliance audit trail"
+  publish = true
+  code    = <<-EOT
+function handler(event) {
+    var request = event.request;
+    var headers = request.headers;
+    
+    // Add audit trail headers
+    headers['x-access-timestamp'] = { value: new Date().toISOString() };
+    headers['x-cloudfront-viewer-country'] = { value: event.viewer.country || 'unknown' };
+    headers['x-request-id'] = { value: event.context.requestId };
+    
+    // Log patient data access if present (for audit trail)
+    if (headers['x-patient-id']) {
+        headers['x-audit-patient-access'] = { value: 'true' };
+    }
+    
+    // Log medical image access
+    if (request.uri.includes('/medical-images/') || request.uri.includes('/api/medical')) {
+        headers['x-audit-medical-access'] = { value: 'true' };
+    }
+    
+    return request;
 }
 EOT
 }

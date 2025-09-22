@@ -13,11 +13,11 @@ resource "aws_cloudwatch_dashboard" "healthhub_sre_dashboard" {
         height = 6
         properties = {
           metrics = [
-            ["AWS/Lambda", "Invocations", "FunctionName", "healthhub-user-service-${var.environment}"],
+            ["AWS/Lambda", "Invocations", "FunctionName", "hh-user-${var.environment}-listUsers"],
             [".", "Errors", ".", "."],
-            ["AWS/ApiGateway", "Count", "ApiName", var.api_gateway_name],
-            [".", "4XXError", ".", "."],
-            [".", "5XXError", ".", "."]
+            [".", "Invocations", ".", "hh-medical-image-${var.environment}-listImages"],
+            [".", "Invocations", ".", "hh-patient-${var.environment}-listPatients"],
+            ["AWS/CloudFront", "Requests", "DistributionId", "E24K6IN356X0NB"]
           ]
           view    = "timeSeries"
           stacked = false
@@ -37,10 +37,10 @@ resource "aws_cloudwatch_dashboard" "healthhub_sre_dashboard" {
         height = 6
         properties = {
           metrics = [
-            ["AWS/Lambda", "Duration", "FunctionName", "healthhub-user-service-${var.environment}"],
-            [".", ".", ".", "healthhub-ai-interaction-${var.environment}"],
-            [".", ".", ".", "healthhub-medical-image-service-${var.environment}"],
-            [".", ".", ".", "healthhub-transcription-service-${var.environment}"]
+            ["AWS/Lambda", "Duration", "FunctionName", "hh-user-${var.environment}-listUsers"],
+            [".", ".", ".", "hh-ai-interaction-${var.environment}-processVirtualAssistant"],
+            [".", ".", ".", "hh-medical-image-${var.environment}-listImages"],
+            [".", ".", ".", "hh-transcription-${var.environment}-listTranscriptions"]
           ]
           view   = "timeSeries"
           region = data.aws_region.current.name
@@ -108,7 +108,9 @@ resource "aws_cloudwatch_dashboard" "healthhub_sre_dashboard" {
         height = 6
         properties = {
           metrics = [
-            ["AWS/DynamoDB", "ConsumedReadCapacityUnits", "TableName", "healthhub-users-${var.environment}"],
+            ["AWS/DynamoDB", "ConsumedReadCapacityUnits", "TableName", "hh-medical-image-${var.environment}-medical-images"],
+            [".", "ConsumedWriteCapacityUnits", ".", "."],
+            [".", "ConsumedReadCapacityUnits", ".", "hh-transcription-${var.environment}-transcriptions"],
             [".", "ConsumedWriteCapacityUnits", ".", "."]
           ]
           view   = "timeSeries"
