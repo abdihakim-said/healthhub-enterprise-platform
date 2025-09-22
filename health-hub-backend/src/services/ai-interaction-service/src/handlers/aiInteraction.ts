@@ -139,13 +139,15 @@ export const list: APIGatewayProxyHandler = async (event) => {
     const userId = event.queryStringParameters?.userId;
     
     if (!userId) {
+      // Return all interactions for dashboard analytics
+      const allInteractions = await aiInteractionService.listAll();
       return {
-        statusCode: 400,
+        statusCode: 200,
         headers: {
           "Content-Type": "application/json",
           "Access-Control-Allow-Origin": "*",
         },
-        body: JSON.stringify({ error: "userId query parameter is required" }),
+        body: JSON.stringify(allInteractions),
       };
     }
 

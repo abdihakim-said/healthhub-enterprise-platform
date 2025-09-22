@@ -152,6 +152,23 @@ export class AIInteractionService {
     }
   }
 
+  async listAll(): Promise<any[]> {
+    try {
+      // Use DynamoDB scan directly to avoid schema validation issues
+      const params = {
+        TableName: 'hh-ai-interaction-production-ai-interactions'
+      };
+      
+      const dynamodb = new (require('aws-sdk')).DynamoDB.DocumentClient();
+      const result = await dynamodb.scan(params).promise();
+      
+      return result.Items || [];
+    } catch (error) {
+      console.error('ERROR', 'Failed to list all AI interactions:', error);
+      throw error;
+    }
+  }
+
   async update(id: string, data: Partial<AIInteraction>): Promise<AIInteraction | null> {
     try {
       const interaction = await AIInteractionModel.get(id);
