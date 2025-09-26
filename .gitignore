@@ -9,11 +9,25 @@ build/
 coverage/
 *.log
 
-# Terraform
+# Terraform - CRITICAL SECURITY
 terraform.tfstate*
 .terraform/
 *.tfplan
 .terraform.lock.hcl
+terraform.tfvars
+*.auto.tfvars
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+terraform.tfvars.BACKUP-*
+
+# Infrastructure - New organization
+infrastructure/terraform/terraform.tfvars
+infrastructure/terraform/.terraform/
+infrastructure/terraform/*.tfstate*
+infrastructure/terraform/*.tfplan
+infrastructure/terraform/.terraform.lock.hcl
 
 # Environment files
 .env
@@ -38,6 +52,20 @@ auth.json
 config.json
 secrets.yaml
 secrets.yml
+
+# Multi-Cloud API Keys (CRITICAL)
+openai-api-key*
+azure-speech-key*
+google-vision-credentials*
+*openai*key*
+*azure*key*
+*google*credentials*
+
+# AWS specific
+.aws/
+aws-exports.js
+amplify/
+.amplify/
 
 # System files
 .DS_Store
@@ -98,12 +126,6 @@ pids/
 *.seed
 *.pid.lock
 
-# AWS specific
-.aws/
-aws-exports.js
-amplify/
-.amplify/
-
 # Docker
 .dockerignore
 docker-compose.override.yml
@@ -119,7 +141,6 @@ ehthumbs.db
 Thumbs.db
 
 # Git files (cleanup)
-.git/
 ORIG_HEAD
 FETCH_HEAD
 COMMIT_EDITMSG

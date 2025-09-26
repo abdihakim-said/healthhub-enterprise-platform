@@ -1,0 +1,32 @@
+# HealthHub Terraform Variables Template
+# Copy this file to terraform.tfvars and fill in your values
+# NEVER commit terraform.tfvars to git!
+
+# Environment Configuration
+environment = "production"
+aws_region  = "us-east-1"
+project_name = "healthhub"
+
+# Feature Flags
+enable_dynamodb_autoscaling = false
+enable_backup = true
+enable_detailed_monitoring = true
+enable_waf = true
+enable_uk_compliance = true
+
+# Alert Configuration
+alert_email = "your-email@example.com"
+
+# Secrets (Use environment variables instead!)
+# export TF_VAR_openai_api_key="your-openai-key"
+# export TF_VAR_openai_assistant_id="your-assistant-id"
+# export TF_VAR_azure_speech_key="your-azure-key"
+# export TF_VAR_azure_speech_region="eastus"
+# export TF_VAR_google_vision_credentials='{"type":"service_account",...}'
+
+# Or use AWS Secrets Manager (recommended)
+openai_api_key = null
+openai_assistant_id = null
+azure_speech_key = null
+azure_speech_region = "eastus"
+google_vision_credentials = null
