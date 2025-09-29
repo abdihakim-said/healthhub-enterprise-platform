@@ -71,7 +71,7 @@ variable "project_name" {
 variable "alert_email" {
   description = "Email address for alerts"
   type        = string
-  default     = ""
+  default     = "said.sre.dev@gmail.com"
 }
 
 variable "enable_uk_compliance" {
@@ -246,6 +246,24 @@ module "dynamodb_autoscaling" {
   
   environment = local.environment
   aws_region  = var.aws_region
+}
+
+# Enhanced Monitoring Module
+module "enhanced_monitoring" {
+  source = "./modules/enhanced-monitoring"
+  
+  environment = local.environment
+  alert_emails = [var.alert_email]
+  
+  lambda_functions = {
+    "ai-interaction" = "hh-ai-interaction-${local.environment}-processVirtualAssistant"
+    "medical-image"  = "hh-medical-image-${local.environment}-analyzeImage"
+    "transcription"  = "hh-transcription-${local.environment}-transcribeAudio"
+    "user-service"   = "hh-user-${local.environment}-login"
+  }
+  
+  ai_service_function = "hh-ai-interaction-${local.environment}-processVirtualAssistant"
+  log_retention_days = 30
 }
 
 # Outputs

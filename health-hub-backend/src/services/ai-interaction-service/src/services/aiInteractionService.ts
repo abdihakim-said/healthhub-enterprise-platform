@@ -199,6 +199,8 @@ export class AIInteractionService {
     query: any,
     userId: string
   ): Promise<string> {
+    const startTime = Date.now();
+    
     try {
       await this.initializeOpenAI();
       
