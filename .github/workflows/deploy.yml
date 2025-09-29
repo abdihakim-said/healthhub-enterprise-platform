@@ -80,12 +80,12 @@ jobs:
 
       - name: Terraform Init
         run: |
-          cd health-hub-backend/terraform
+          cd infrastructure/terraform
           terraform init
 
       - name: Terraform Plan
         run: |
-          cd health-hub-backend/terraform
+          cd infrastructure/terraform
           terraform plan -no-color
         continue-on-error: true
 
@@ -119,7 +119,7 @@ jobs:
 
       - name: Deploy infrastructure
         run: |
-          cd health-hub-backend/terraform
+          cd infrastructure/terraform
           terraform init
           terraform workspace select dev || terraform workspace new dev
           terraform apply -auto-approve
@@ -163,7 +163,7 @@ jobs:
 
       - name: Deploy infrastructure
         run: |
-          cd health-hub-backend/terraform
+          cd infrastructure/terraform
           terraform init
           terraform workspace select production || terraform workspace new production
           terraform apply -auto-approve
