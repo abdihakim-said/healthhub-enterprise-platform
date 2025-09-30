@@ -5,6 +5,12 @@ on:
     workflows: ["HealthHub CI Pipeline"]
     types: [completed]
     branches: [main, develop, 'feature/*']
+  workflow_dispatch:  # Manual trigger for feature branch testing
+    inputs:
+      reason:
+        description: 'Reason for manual build'
+        required: false
+        default: 'Testing build pipeline'
 
 env:
   AWS_REGION: us-east-1
@@ -14,7 +20,7 @@ jobs:
   build-frontend:
     name: Build Frontend
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -46,7 +52,7 @@ jobs:
   terraform-plan:
     name: Terraform Plan
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event_name == 'pull_request' }}
+    if: ${{ (github.event.workflow_run.conclusion == 'success' && github.event_name == 'pull_request') || github.event_name == 'workflow_dispatch' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
