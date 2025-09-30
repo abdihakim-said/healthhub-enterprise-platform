@@ -25,6 +25,7 @@ module.exports = {
       statements: 5,
     },
   },
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   testTimeout: 30000,
   maxWorkers: 1,
   workerIdleMemoryLimit: '256MB'
