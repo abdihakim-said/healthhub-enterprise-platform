@@ -4,7 +4,7 @@ on:
   workflow_run:
     workflows: ["HealthHub CI Pipeline"]
     types: [completed]
-    branches: [main, develop]
+    branches: [main, develop, 'feature/*']
 
 env:
   AWS_REGION: us-east-1
