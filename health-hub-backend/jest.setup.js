@@ -13,7 +13,14 @@ jest.mock('aws-sdk', () => {
     delete: jest.fn().mockReturnValue({ promise: () => Promise.resolve({}) })
   };
 
-  const mockSecretsManager = {
+  const mockDynamoDB = jest.fn(() => ({
+    putItem: jest.fn().mockReturnValue({ promise: () => Promise.resolve({}) }),
+    getItem: jest.fn().mockReturnValue({ promise: () => Promise.resolve({ Item: {} }) }),
+    scan: jest.fn().mockReturnValue({ promise: () => Promise.resolve({ Items: [] }) }),
+    query: jest.fn().mockReturnValue({ promise: () => Promise.resolve({ Items: [] }) })
+  }));
+
+  const mockSecretsManager = jest.fn(() => ({
     getSecretValue: jest.fn().mockReturnValue({ 
       promise: () => Promise.resolve({ 
         SecretString: JSON.stringify({ 
@@ -22,13 +29,14 @@ jest.mock('aws-sdk', () => {
         }) 
       }) 
     })
-  };
+  }));
+
+  // Add DocumentClient as a property of DynamoDB
+  mockDynamoDB.DocumentClient = jest.fn(() => mockDocumentClient);
 
   return {
-    DynamoDB: {
-      DocumentClient: jest.fn(() => mockDocumentClient)
-    },
-    SecretsManager: jest.fn(() => mockSecretsManager),
+    DynamoDB: mockDynamoDB,
+    SecretsManager: mockSecretsManager,
     config: {
       update: jest.fn()
     }
