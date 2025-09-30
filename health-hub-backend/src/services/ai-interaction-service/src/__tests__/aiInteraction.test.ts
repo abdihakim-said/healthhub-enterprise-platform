@@ -72,7 +72,8 @@ describe('AI Interaction Handler', () => {
 
       const result = await create(mockEvent as APIGatewayProxyEvent, mockContext as Context, () => {}) as any;
 
-      expect(result.statusCode).toBe(500);
+      expect(result.statusCode).toBe(400);
+      expect(JSON.parse(result.body)).toEqual({ error: 'Invalid JSON in request body' });
     });
   });
 

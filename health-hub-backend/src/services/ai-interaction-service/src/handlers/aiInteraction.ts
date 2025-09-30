@@ -5,7 +5,20 @@ const aiInteractionService = new AIInteractionService();
 
 export const create: APIGatewayProxyHandler = async (event) => {
   try {
-    const data = JSON.parse(event.body!);
+    let data;
+    try {
+      data = JSON.parse(event.body!);
+    } catch (parseError) {
+      return {
+        statusCode: 400,
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+        },
+        body: JSON.stringify({ error: 'Invalid JSON in request body' }),
+      };
+    }
+    
     const interaction = await aiInteractionService.create(data);
     return {
       statusCode: 201,
