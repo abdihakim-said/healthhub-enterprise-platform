@@ -13,10 +13,22 @@ jest.mock('aws-sdk', () => {
     delete: jest.fn().mockReturnValue({ promise: () => Promise.resolve({}) })
   };
 
+  const mockSecretsManager = {
+    getSecretValue: jest.fn().mockReturnValue({ 
+      promise: () => Promise.resolve({ 
+        SecretString: JSON.stringify({ 
+          OPENAI_API_KEY: 'test-key',
+          AZURE_SPEECH_KEY: 'test-key' 
+        }) 
+      }) 
+    })
+  };
+
   return {
     DynamoDB: {
       DocumentClient: jest.fn(() => mockDocumentClient)
     },
+    SecretsManager: jest.fn(() => mockSecretsManager),
     config: {
       update: jest.fn()
     }
