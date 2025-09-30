@@ -92,6 +92,6 @@ describe('AI Interaction Service Integration', () => {
     expect(created.interactionType).toBe('speechConversion');
     
     const retrieved = await aiInteractionService.get(created.id);
-    expect(retrieved.metadata.audioFormat).toBe('wav');
+    expect((retrieved as any).metadata?.audioFormat).toBe('wav');
   }, 30000);
 });
