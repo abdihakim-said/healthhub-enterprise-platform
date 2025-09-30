@@ -1,6 +1,6 @@
 import * as dynamoose from "dynamoose";
 import { Document } from "dynamoose/dist/Document";
-import * as AWS from "aws-sdk";
+const AWS = require("aws-sdk");
 import { v4 as uuidv4 } from "uuid";
 import { OpenAI } from "openai";
 import { getOpenAICredentials } from "../utils/secretsManager";
