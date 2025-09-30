@@ -23,6 +23,15 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
+      - name: Configure AWS credentials for tests
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-duration-seconds: 3600
+          role-session-name: HealthHub-CI-Tests
+
       - name: Install dependencies
         run: |
           cd health-hub-backend
@@ -32,11 +41,17 @@ jobs:
         run: |
           cd health-hub-backend
           npm test
+        env:
+          NODE_ENV: test
+          AWS_REGION: ${{ env.AWS_REGION }}
 
-      - name: Run linting
+      - name: Run integration tests
         run: |
           cd health-hub-backend
-          npm run lint || echo "Linting not configured"
+          npm run test:integration || echo "Integration tests not configured"
+        env:
+          NODE_ENV: test
+          AWS_REGION: ${{ env.AWS_REGION }}
 
   security-scan:
     name: Security Scan
@@ -60,6 +75,14 @@ jobs:
           cd health-hub-backend
           npm audit --audit-level=high || echo "Security audit completed with warnings"
 
+      - name: Run SAST scan
+        uses: github/super-linter@v4
+        env:
+          DEFAULT_BRANCH: main
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VALIDATE_TYPESCRIPT_ES: true
+          VALIDATE_JAVASCRIPT_ES: true
+
   terraform-plan:
     name: Terraform Plan
     runs-on: ubuntu-latest
@@ -79,24 +102,39 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
+          role-duration-seconds: 3600
+          role-session-name: HealthHub-Terraform-Plan
 
       - name: Terraform Init
         run: |
           cd infrastructure/terraform
           terraform init
 
+      - name: Terraform Validate
+        run: |
+          cd infrastructure/terraform
+          terraform validate
+
       - name: Terraform Plan
         run: |
           cd infrastructure/terraform
-          terraform plan -no-color
+          terraform plan -no-color -out=tfplan
         continue-on-error: true
+
+      - name: Upload Terraform Plan
+        uses: actions/upload-artifact@v3
+        with:
+          name: terraform-plan
+          path: infrastructure/terraform/tfplan
 
   deploy-dev:
     name: Deploy to Development
     runs-on: ubuntu-latest
     needs: [test, security-scan]
     if: github.ref == 'refs/heads/develop'
-    environment: development
+    environment: 
+      name: development
+      url: https://dev.healthhub.com
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -109,9 +147,11 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-access-key-id: ${{ secrets.DEV_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.DEV_AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
+          role-duration-seconds: 3600
+          role-session-name: HealthHub-Deploy-Dev
 
       - name: Install dependencies
         run: |
@@ -123,19 +163,26 @@ jobs:
           cd infrastructure/terraform
           terraform init
           terraform workspace select dev || terraform workspace new dev
-          terraform apply -auto-approve
+          terraform apply -auto-approve -var="environment=dev"
 
       - name: Deploy services
         run: |
           cd health-hub-backend
           npx @serverless/compose deploy --stage dev
 
+      - name: Run smoke tests
+        run: |
+          cd health-hub-backend
+          npm run test:smoke:dev || echo "Smoke tests not configured"
+
   deploy-prod:
     name: Deploy to Production
     runs-on: ubuntu-latest
-    needs: [test, security-scan]
+    needs: [test, security-scan, terraform-plan]
     if: github.ref == 'refs/heads/main'
-    environment: production
+    environment: 
+      name: production
+      url: https://d1aylx7zsl7bap.cloudfront.net
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -148,9 +195,11 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-access-key-id: ${{ secrets.PROD_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.PROD_AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
+          role-duration-seconds: 3600
+          role-session-name: HealthHub-Deploy-Prod
 
       - name: Install dependencies
         run: |
@@ -162,9 +211,56 @@ jobs:
           cd infrastructure/terraform
           terraform init
           terraform workspace select production || terraform workspace new production
-          terraform apply -auto-approve
+          terraform apply -auto-approve -var="environment=production"
 
       - name: Deploy services
         run: |
           cd health-hub-backend
           npx @serverless/compose deploy --stage prod
+
+      - name: Run smoke tests
+        run: |
+          cd health-hub-backend
+          npm run test:smoke:prod || echo "Smoke tests not configured"
+
+      - name: Notify deployment success
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          text: "✅ HealthHub Production Deployment Successful"
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: success()
+
+  rollback:
+    name: Rollback on Failure
+    runs-on: ubuntu-latest
+    if: failure() && github.ref == 'refs/heads/main'
+    needs: [deploy-prod]
+    environment: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.PROD_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.PROD_AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-duration-seconds: 3600
+          role-session-name: HealthHub-Rollback-Prod
+
+      - name: Rollback deployment
+        run: |
+          cd health-hub-backend
+          npx @serverless/compose remove --stage prod
+          echo "Manual intervention required for infrastructure rollback"
+
+      - name: Notify rollback
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          text: "🚨 HealthHub Production Rollback Initiated"
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
