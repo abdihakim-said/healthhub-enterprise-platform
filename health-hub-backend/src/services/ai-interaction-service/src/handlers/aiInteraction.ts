@@ -29,7 +29,9 @@ export const create: APIGatewayProxyHandler = async (event) => {
       body: JSON.stringify(interaction),
     };
   } catch (error) {
-    console.error('Error creating AI interaction:', error);
+    if (process.env.NODE_ENV !== 'test') {
+      console.error('Error creating AI interaction:', error);
+    }
     return {
       statusCode: 500,
       headers: {
