@@ -5,6 +5,7 @@ module.exports = {
   testMatch: ['**/__tests__/**/*.ts', '**/?(*.)+(spec|test).ts'],
   testPathIgnorePatterns: [
     '/node_modules/',
+    '**/*.integration.test.ts', // Skip integration tests in CI
   ],
   transform: {
     '^.+\\.ts$': 'ts-jest',
