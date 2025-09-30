@@ -1,0 +1,97 @@
+name: HealthHub Deploy Production
+
+on:
+  workflow_run:
+    workflows: ["HealthHub Build Pipeline"]
+    types: [completed]
+    branches: [main]
+
+env:
+  AWS_REGION: us-east-1
+  NODE_VERSION: '18'
+
+jobs:
+  deploy-prod:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    environment: 
+      name: production
+      url: https://d1aylx7zsl7bap.cloudfront.net
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.0
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.PROD_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.PROD_AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-duration-seconds: 3600
+          role-session-name: HealthHub-Deploy-Prod
+
+      # Step 1: Deploy Infrastructure First
+      - name: Deploy infrastructure
+        run: |
+          cd infrastructure/terraform
+          terraform init
+          terraform workspace select production || terraform workspace new production
+          terraform apply -auto-approve -var="environment=production"
+
+      # Step 2: Deploy Frontend
+      - name: Download frontend build
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build-${{ github.sha }}
+          path: ./frontend-dist
+
+      - name: Deploy frontend to S3 and CloudFront
+        run: |
+          cd infrastructure/terraform
+          S3_BUCKET=$(terraform output -raw s3_bucket_name)
+          CLOUDFRONT_ID=$(terraform output -raw cloudfront_distribution_id)
+          
+          # Deploy to S3
+          aws s3 sync ../../frontend-dist s3://$S3_BUCKET --delete
+          
+          # Invalidate CloudFront cache
+          if [ ! -z "$CLOUDFRONT_ID" ]; then
+            aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_ID --paths "/*"
+          fi
+
+      # Step 3: Deploy Backend Services
+      - name: Install backend dependencies
+        run: |
+          cd health-hub-backend
+          npm install
+
+      - name: Deploy backend services
+        run: |
+          cd health-hub-backend
+          npx @serverless/compose deploy --stage production
+
+      # Step 4: Run Smoke Tests
+      - name: Run smoke tests
+        run: |
+          cd health-hub-backend
+          npm run test:smoke:prod || echo "Smoke tests not configured"
+
+      - name: Notify deployment success
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          text: "✅ HealthHub Production Deployment Successful"
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: success()

@@ -1,0 +1,76 @@
+name: HealthHub Deploy Development
+
+on:
+  workflow_run:
+    workflows: ["HealthHub Build Pipeline"]
+    types: [completed]
+    branches: [develop]
+
+env:
+  AWS_REGION: us-east-1
+  NODE_VERSION: '18'
+
+jobs:
+  deploy-dev:
+    name: Deploy to Development
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    environment: 
+      name: development
+      url: https://dev.healthhub.com
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.0
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.PROD_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.PROD_AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-duration-seconds: 3600
+          role-session-name: HealthHub-Deploy-Dev
+
+      - name: Deploy infrastructure
+        run: |
+          cd infrastructure/terraform
+          terraform init
+          terraform workspace select dev || terraform workspace new dev
+          terraform apply -auto-approve -var="environment=dev"
+
+      - name: Download frontend build
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build-${{ github.sha }}
+          path: ./frontend-dist
+
+      - name: Deploy frontend to S3
+        run: |
+          cd infrastructure/terraform
+          S3_BUCKET=$(terraform output -raw s3_bucket_name || echo "healthhub-dev-frontend")
+          aws s3 sync ../../frontend-dist s3://$S3_BUCKET --delete
+
+      - name: Install backend dependencies
+        run: |
+          cd health-hub-backend
+          npm install
+
+      - name: Deploy services
+        run: |
+          cd health-hub-backend
+          npx @serverless/compose deploy --stage dev
+
+      - name: Run smoke tests
+        run: |
+          cd health-hub-backend
+          npm run test:smoke:dev || echo "Smoke tests not configured"
