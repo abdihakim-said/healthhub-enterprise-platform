@@ -40,7 +40,7 @@ jobs:
       - name: Run unit tests
         run: |
           cd health-hub-backend
-          npm test
+          npm test -- --testPathIgnorePatterns=".*integration.test.ts"
         env:
           NODE_ENV: test
           AWS_REGION: ${{ env.AWS_REGION }}
@@ -48,10 +48,17 @@ jobs:
       - name: Run integration tests
         run: |
           cd health-hub-backend
-          npm run test:integration || echo "Integration tests not configured"
+          npm test -- --testPathPattern=".*integration.test.ts"
         env:
           NODE_ENV: test
           AWS_REGION: ${{ env.AWS_REGION }}
+          AI_INTERACTION_TABLE: hh-ai-interaction-production-ai-interactions
+          APPOINTMENT_TABLE: hh-appointment-production-appointments
+          DOCTOR_TABLE: hh-doctor-production-doctors
+          MEDICAL_IMAGE_TABLE: hh-medical-image-production-medical-images
+          PATIENT_TABLE: hh-patient-production-patients
+          TRANSCRIPTION_TABLE: hh-transcription-production-transcriptions
+          USER_TABLE: hh-user-production-users
 
   security-scan:
     name: Security Scan
