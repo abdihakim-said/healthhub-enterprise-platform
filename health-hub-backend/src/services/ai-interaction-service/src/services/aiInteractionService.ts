@@ -53,9 +53,9 @@ const AIInteractionModel = dynamoose.model<AIInteraction>(
 );
 
 export class AIInteractionService {
-  private polly: Polly;
-  private translate: Translate;
-  private s3: S3;
+  private polly: AWS.Polly;
+  private translate: AWS.Translate;
+  private s3: AWS.S3;
   private openai: OpenAI | null = null;
   private openaiCredentials: { api_key: string; assistant_id: string } | null = null;
 
