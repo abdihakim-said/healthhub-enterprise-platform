@@ -4,20 +4,34 @@ process.env.NODE_ENV = 'test';
 
 // Mock AWS SDK to prevent real AWS calls in unit tests
 jest.mock('aws-sdk', () => {
+  const mockPromise = () => Promise.resolve({});
+  const mockPromiseWithItem = () => Promise.resolve({ Item: {} });
+  const mockPromiseWithItems = () => Promise.resolve({ Items: [] });
+
   const mockDocumentClient = {
-    put: jest.fn().mockReturnValue({ promise: () => Promise.resolve({}) }),
-    get: jest.fn().mockReturnValue({ promise: () => Promise.resolve({ Item: {} }) }),
-    scan: jest.fn().mockReturnValue({ promise: () => Promise.resolve({ Items: [] }) }),
-    query: jest.fn().mockReturnValue({ promise: () => Promise.resolve({ Items: [] }) }),
-    update: jest.fn().mockReturnValue({ promise: () => Promise.resolve({}) }),
-    delete: jest.fn().mockReturnValue({ promise: () => Promise.resolve({}) })
+    put: jest.fn().mockReturnValue({ promise: mockPromise }),
+    get: jest.fn().mockReturnValue({ promise: mockPromiseWithItem }),
+    scan: jest.fn().mockReturnValue({ promise: mockPromiseWithItems }),
+    query: jest.fn().mockReturnValue({ promise: mockPromiseWithItems }),
+    update: jest.fn().mockReturnValue({ promise: mockPromise }),
+    delete: jest.fn().mockReturnValue({ promise: mockPromise }),
+    batchGet: jest.fn().mockReturnValue({ promise: mockPromiseWithItems }),
+    batchWrite: jest.fn().mockReturnValue({ promise: mockPromise })
   };
 
+  // Complete DynamoDB mock for Dynamoose
   const mockDynamoDB = jest.fn(() => ({
-    putItem: jest.fn().mockReturnValue({ promise: () => Promise.resolve({}) }),
-    getItem: jest.fn().mockReturnValue({ promise: () => Promise.resolve({ Item: {} }) }),
-    scan: jest.fn().mockReturnValue({ promise: () => Promise.resolve({ Items: [] }) }),
-    query: jest.fn().mockReturnValue({ promise: () => Promise.resolve({ Items: [] }) })
+    putItem: jest.fn().mockReturnValue({ promise: mockPromise }),
+    getItem: jest.fn().mockReturnValue({ promise: mockPromiseWithItem }),
+    scan: jest.fn().mockReturnValue({ promise: mockPromiseWithItems }),
+    query: jest.fn().mockReturnValue({ promise: mockPromiseWithItems }),
+    updateItem: jest.fn().mockReturnValue({ promise: mockPromise }),
+    deleteItem: jest.fn().mockReturnValue({ promise: mockPromise }),
+    batchGetItem: jest.fn().mockReturnValue({ promise: mockPromiseWithItems }),
+    batchWriteItem: jest.fn().mockReturnValue({ promise: mockPromise }),
+    createTable: jest.fn().mockReturnValue({ promise: mockPromise }),
+    describeTable: jest.fn().mockReturnValue({ promise: () => Promise.resolve({ Table: { TableStatus: 'ACTIVE' } }) }),
+    listTables: jest.fn().mockReturnValue({ promise: () => Promise.resolve({ TableNames: [] }) })
   }));
 
   const mockSecretsManager = jest.fn(() => ({
