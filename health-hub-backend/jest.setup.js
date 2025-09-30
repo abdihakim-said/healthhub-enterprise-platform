@@ -2,6 +2,14 @@
 process.env.AWS_REGION = 'us-east-1';
 process.env.NODE_ENV = 'test';
 
+// Set test environment variables
+process.env.AI_INTERACTION_TABLE = 'test-ai-interactions-table';
+process.env.S3_BUCKET = 'test-s3-bucket';
+process.env.OPENAI_SECRET_NAME = 'test/openai-credentials';
+process.env.AZURE_SECRET_NAME = 'test/azure-credentials';
+process.env.OPEN_AI_KEY = 'test-openai-key';
+process.env.ASSISTANT_ID = 'test-assistant-id';
+
 // Mock AWS SDK to prevent real AWS calls in unit tests
 jest.mock('aws-sdk', () => {
   const mockPromise = () => Promise.resolve({});
@@ -38,8 +46,10 @@ jest.mock('aws-sdk', () => {
     getSecretValue: jest.fn().mockReturnValue({ 
       promise: () => Promise.resolve({ 
         SecretString: JSON.stringify({ 
-          OPENAI_API_KEY: 'test-key',
-          AZURE_SPEECH_KEY: 'test-key' 
+          api_key: 'test-openai-key',
+          assistant_id: 'test-assistant-id',
+          AZURE_SPEECH_KEY: 'test-azure-key',
+          AZURE_SPEECH_REGION: 'eastus'
         }) 
       }) 
     })
@@ -67,7 +77,11 @@ jest.mock('aws-sdk', () => {
       promise: () => Promise.resolve({
         Location: 'https://mock-s3-url.com/file.mp3'
       })
-    })
+    }),
+    putObject: jest.fn().mockReturnValue({
+      promise: () => Promise.resolve({})
+    }),
+    getSignedUrl: jest.fn().mockReturnValue('https://mock-signed-url.com/file.mp3')
   }));
 
   // Add DocumentClient as a property of DynamoDB
@@ -84,3 +98,17 @@ jest.mock('aws-sdk', () => {
     }
   };
 });
+
+// Mock fetch for OpenAI API calls
+global.fetch = jest.fn(() =>
+  Promise.resolve({
+    ok: true,
+    json: () => Promise.resolve({
+      choices: [{
+        message: {
+          content: 'Mock AI response for testing'
+        }
+      }]
+    })
+  })
+);
