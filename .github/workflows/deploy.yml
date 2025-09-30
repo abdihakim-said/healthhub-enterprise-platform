@@ -40,7 +40,7 @@ jobs:
       - name: Run unit tests
         run: |
           cd health-hub-backend
-          npm test -- --testPathIgnorePatterns=".*integration.test.ts"
+          npm test -- --testPathIgnorePatterns=".*integration.test.ts" --silent
         env:
           NODE_ENV: test
           AWS_REGION: ${{ env.AWS_REGION }}
