@@ -1,6 +1,6 @@
 import * as dynamoose from "dynamoose";
 import { Document } from "dynamoose/dist/Document";
-import { Polly, Translate, S3 } from "aws-sdk";
+import * as AWS from "aws-sdk";
 import { v4 as uuidv4 } from "uuid";
 import { OpenAI } from "openai";
 import { getOpenAICredentials } from "../utils/secretsManager";
@@ -60,9 +60,9 @@ export class AIInteractionService {
   private openaiCredentials: { api_key: string; assistant_id: string } | null = null;
 
   constructor() {
-    this.polly = new Polly();
-    this.translate = new Translate({ region: "us-east-1" });
-    this.s3 = new S3();
+    this.polly = new AWS.Polly();
+    this.translate = new AWS.Translate({ region: "us-east-1" });
+    this.s3 = new AWS.S3();
   }
 
   /**

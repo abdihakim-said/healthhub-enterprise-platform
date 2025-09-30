@@ -10,7 +10,7 @@ module.exports = {
     '^.+\\.ts$': 'ts-jest',
   },
   collectCoverageFrom: [
-    'src/services/ai-interaction-service/**/*.ts',
+    'src/services/**/*.ts',
     '!src/**/*.d.ts',
     '!src/**/node_modules/**',
     '!src/**/*.integration.test.ts',
