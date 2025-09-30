@@ -45,12 +45,40 @@ jest.mock('aws-sdk', () => {
     })
   }));
 
+  // Mock Polly, Translate, S3 for AI interaction service
+  const mockPolly = jest.fn(() => ({
+    synthesizeSpeech: jest.fn().mockReturnValue({
+      promise: () => Promise.resolve({
+        AudioStream: Buffer.from('mock-audio-data')
+      })
+    })
+  }));
+
+  const mockTranslate = jest.fn(() => ({
+    translateText: jest.fn().mockReturnValue({
+      promise: () => Promise.resolve({
+        TranslatedText: 'Mock translated text'
+      })
+    })
+  }));
+
+  const mockS3 = jest.fn(() => ({
+    upload: jest.fn().mockReturnValue({
+      promise: () => Promise.resolve({
+        Location: 'https://mock-s3-url.com/file.mp3'
+      })
+    })
+  }));
+
   // Add DocumentClient as a property of DynamoDB
   mockDynamoDB.DocumentClient = jest.fn(() => mockDocumentClient);
 
   return {
     DynamoDB: mockDynamoDB,
     SecretsManager: mockSecretsManager,
+    Polly: mockPolly,
+    Translate: mockTranslate,
+    S3: mockS3,
     config: {
       update: jest.fn()
     }

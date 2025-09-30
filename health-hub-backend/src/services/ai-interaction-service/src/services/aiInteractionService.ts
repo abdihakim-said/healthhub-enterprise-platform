@@ -1,8 +1,6 @@
 import * as dynamoose from "dynamoose";
 import { Document } from "dynamoose/dist/Document";
-const Polly = require("aws-sdk/clients/polly");
-const Translate = require("aws-sdk/clients/translate");
-const S3 = require("aws-sdk/clients/s3");
+import { Polly, Translate, S3 } from "aws-sdk";
 import { v4 as uuidv4 } from "uuid";
 import { OpenAI } from "openai";
 import { getOpenAICredentials } from "../utils/secretsManager";
@@ -55,9 +53,9 @@ const AIInteractionModel = dynamoose.model<AIInteraction>(
 );
 
 export class AIInteractionService {
-  private polly: any;
-  private translate: any;
-  private s3: any;
+  private polly: Polly;
+  private translate: Translate;
+  private s3: S3;
   private openai: OpenAI | null = null;
   private openaiCredentials: { api_key: string; assistant_id: string } | null = null;
 
