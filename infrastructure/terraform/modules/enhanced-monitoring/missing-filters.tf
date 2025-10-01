@@ -4,7 +4,7 @@
 resource "aws_cloudwatch_log_metric_filter" "azure_speech_errors" {
   name           = "azure-speech-errors"
   log_group_name = "/aws/lambda/${var.transcription_function}"
-  pattern        = "[timestamp, request_id, \"AZURE_SPEECH_ERROR\", ...]"
+  pattern        = "[timestamp, request_id, AZURE_SPEECH_ERROR, ...]"
 
   metric_transformation {
     name      = "AzureSpeechErrors"
@@ -18,7 +18,7 @@ resource "aws_cloudwatch_log_metric_filter" "azure_speech_errors" {
 resource "aws_cloudwatch_log_metric_filter" "google_vision_errors" {
   name           = "google-vision-errors"
   log_group_name = "/aws/lambda/${var.medical_image_function}"
-  pattern        = "[timestamp, request_id, \"GOOGLE_VISION_ERROR\", ...]"
+  pattern        = "[timestamp, request_id, GOOGLE_VISION_ERROR, ...]"
 
   metric_transformation {
     name      = "GoogleVisionErrors" 
@@ -32,7 +32,7 @@ resource "aws_cloudwatch_log_metric_filter" "google_vision_errors" {
 resource "aws_cloudwatch_log_metric_filter" "patient_interactions" {
   name           = "patient-interactions"
   log_group_name = "/aws/lambda/${var.ai_service_function}"
-  pattern        = "[timestamp, request_id, \"PATIENT_INTERACTION\", patient_id, interaction_type]"
+  pattern        = "[timestamp, request_id, PATIENT_INTERACTION, patient_id, interaction_type]"
 
   metric_transformation {
     name      = "PatientInteractions"
@@ -46,7 +46,7 @@ resource "aws_cloudwatch_log_metric_filter" "patient_interactions" {
 resource "aws_cloudwatch_log_metric_filter" "medical_image_analysis" {
   name           = "medical-image-analysis"
   log_group_name = "/aws/lambda/${var.medical_image_function}"
-  pattern        = "[timestamp, request_id, \"IMAGE_ANALYSIS\", confidence_score]"
+  pattern        = "[timestamp, request_id, IMAGE_ANALYSIS, confidence_score]"
 
   metric_transformation {
     name      = "MedicalImageAnalysis"
@@ -60,7 +60,7 @@ resource "aws_cloudwatch_log_metric_filter" "medical_image_analysis" {
 resource "aws_cloudwatch_log_metric_filter" "dynamodb_throttles" {
   name           = "dynamodb-throttles"
   log_group_name = "/aws/lambda/${var.ai_service_function}"
-  pattern        = "[timestamp, request_id, \"DYNAMODB_THROTTLE\", table_name]"
+  pattern        = "[timestamp, request_id, DYNAMODB_THROTTLE, table_name]"
 
   metric_transformation {
     name      = "DynamoDBThrottles"
