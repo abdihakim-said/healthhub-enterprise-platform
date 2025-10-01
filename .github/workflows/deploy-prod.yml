@@ -56,18 +56,34 @@ jobs:
           name: frontend-build-${{ github.sha }}
           path: ./frontend-dist
 
+      - name: Verify frontend artifacts
+        run: |
+          if [ ! -d "./frontend-dist" ] || [ -z "$(ls -A ./frontend-dist)" ]; then
+            echo "❌ Frontend build artifacts not found or empty"
+            exit 1
+          fi
+          echo "✅ Frontend artifacts verified: $(ls -la ./frontend-dist)"
+
       - name: Deploy frontend to S3 and CloudFront
         run: |
           cd infrastructure/terraform
-          S3_BUCKET=$(terraform output -raw s3_bucket_name)
-          CLOUDFRONT_ID=$(terraform output -raw cloudfront_distribution_id)
+          S3_BUCKET=$(terraform output -raw s3_bucket_name 2>/dev/null || echo "")
+          CLOUDFRONT_ID=$(terraform output -raw cloudfront_distribution_id 2>/dev/null || echo "")
           
-          # Deploy to S3
+          if [ -z "$S3_BUCKET" ]; then
+            echo "❌ S3 bucket name not found in Terraform outputs"
+            exit 1
+          fi
+          
+          echo "🚀 Deploying to S3 bucket: $S3_BUCKET"
           aws s3 sync ../../frontend-dist s3://$S3_BUCKET --delete
           
           # Invalidate CloudFront cache
           if [ ! -z "$CLOUDFRONT_ID" ]; then
+            echo "🔄 Invalidating CloudFront: $CLOUDFRONT_ID"
             aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_ID --paths "/*"
+          else
+            echo "⚠️ CloudFront distribution ID not found, skipping cache invalidation"
           fi
 
       # Step 3: Deploy Backend Services
@@ -79,7 +95,7 @@ jobs:
       - name: Deploy backend services
         run: |
           cd health-hub-backend
-          npx @serverless/compose deploy --stage production
+          npx @serverless/compose deploy --stage prod
 
       # Step 4: Run Smoke Tests
       - name: Run smoke tests
