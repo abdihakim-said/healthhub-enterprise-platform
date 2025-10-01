@@ -277,6 +277,11 @@ resource "aws_cloudfront_function" "audit_logging" {
   runtime = "cloudfront-js-1.0"
   comment = "Log medical image access for UK compliance audit trail"
   publish = true
+  
+  lifecycle {
+    ignore_changes = [name]
+  }
+  
   code    = <<-EOT
 function handler(event) {
     var request = event.request;
