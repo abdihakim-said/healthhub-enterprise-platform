@@ -2,7 +2,7 @@ name: HealthHub Deploy Production
 
 on:
   workflow_run:
-    workflows: ["HealthHub Build Pipeline"]
+    workflows: ["HealthHub Build Pipeline"]  # Wait for build, not CI
     types: [completed]
     branches: [main]
 
