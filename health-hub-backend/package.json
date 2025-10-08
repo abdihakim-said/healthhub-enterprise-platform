@@ -17,6 +17,7 @@
     "dynamoose": "^2.5.0",
     "fork-ts-checker-webpack-plugin": "^9.0.2",
     "joi": "^17.13.3",
+    "microsoft-cognitiveservices-speech-sdk": "^1.46.0",
     "nodemon": "^3.0.1",
     "openai": "^4.38.0",
     "serverless": "^3.38.0",
