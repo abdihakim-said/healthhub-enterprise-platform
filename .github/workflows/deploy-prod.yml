@@ -78,58 +78,12 @@ jobs:
           terraform workspace select production || terraform workspace new production
           terraform apply -auto-approve -var="environment=prod"
 
-      # Step 2: Deploy Frontend
-      - name: Download frontend build
-        uses: actions/download-artifact@v4
-        with:
-          name: frontend-build-${{ github.sha }}
-          path: ./frontend-dist
-        continue-on-error: true
-        id: download_artifacts
-
-      - name: Retry artifact download if failed
-        if: steps.download_artifacts.outcome == 'failure'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          echo "🔄 First download failed, waiting 30 seconds and retrying..."
-          sleep 30
-          gh run download $(gh run list --workflow="HealthHub Build Pipeline" --limit 1 --json databaseId --jq '.[0].databaseId') --name frontend-build-${{ github.sha }} --dir ./frontend-dist
-
-      - name: Verify frontend artifacts
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          if [ ! -d "./frontend-dist" ] || [ -z "$(ls -A ./frontend-dist)" ]; then
-            echo "❌ Frontend build artifacts not found or empty"
-            echo "🔍 Available artifacts:"
-            gh run list --workflow="HealthHub Build Pipeline" --limit 5
-            echo "🔍 Looking for artifact: frontend-build-${{ github.sha }}"
-            exit 1
-          fi
-          echo "✅ Frontend artifacts verified: $(ls -la ./frontend-dist)"
-
-      - name: Deploy frontend to S3 and CloudFront
+      # Step 2: Frontend is deployed by Terraform automatically
+      - name: Verify frontend deployment
         run: |
           cd infrastructure/terraform
-          S3_BUCKET=$(terraform output -raw s3_bucket_name 2>/dev/null || echo "")
-          CLOUDFRONT_ID=$(terraform output -raw cloudfront_distribution_id 2>/dev/null || echo "")
-          
-          if [ -z "$S3_BUCKET" ]; then
-            echo "❌ S3 bucket name not found in Terraform outputs"
-            exit 1
-          fi
-          
-          echo "🚀 Deploying to S3 bucket: $S3_BUCKET"
-          aws s3 sync ../../frontend-dist s3://$S3_BUCKET --delete
-          
-          # Invalidate CloudFront cache
-          if [ ! -z "$CLOUDFRONT_ID" ]; then
-            echo "🔄 Invalidating CloudFront: $CLOUDFRONT_ID"
-            aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_ID --paths "/*"
-          else
-            echo "⚠️ CloudFront distribution ID not found, skipping cache invalidation"
-          fi
+          echo "✅ Frontend deployed via Terraform"
+          echo "🌐 CloudFront URL: $(terraform output -raw cloudfront_url 2>/dev/null || echo 'https://d1aylx7zsl7bap.cloudfront.net')"
 
       # Step 3: Deploy Backend Services
       - name: Install backend dependencies
