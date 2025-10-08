@@ -4,7 +4,9 @@
   "scripts": {
     "dev": "nodemon --exec \"sls events:offline\" -e \"js yml json ts cjs\"",
     "test": "NODE_ENV=test jest",
-    "deploy": "serverless deploy --stage dev --max-concurrency 1"
+    "deploy": "serverless deploy --stage dev --max-concurrency 1",
+    "test:smoke:staging": "node scripts/smoke-test.js staging",
+    "test:smoke:prod": "node scripts/smoke-test.js production"
   },
   "dependencies": {
     "@types/joi": "^17.2.3",

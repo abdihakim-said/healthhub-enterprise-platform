@@ -139,7 +139,7 @@ resource "aws_wafv2_web_acl" "uk_health_compliance" {
       not_statement {
         statement {
           geo_match_statement {
-            country_codes = ["GB", "IE", "US"]
+            country_codes = ["GB", "IE", "US", "AT"]
           }
         }
       }
@@ -293,7 +293,7 @@ resource "aws_cloudfront_distribution" "frontend" {
   restrictions {
     geo_restriction {
       restriction_type = "whitelist"
-      locations        = ["GB", "IE", "US"]  # UK, Ireland, US only
+      locations        = ["GB", "IE", "US", "AT"]  # UK, Ireland, US, Austria
     }
   }
 
@@ -306,14 +306,7 @@ resource "aws_cloudfront_distribution" "frontend" {
   # WAF Association for UK health compliance
   web_acl_id = aws_wafv2_web_acl.uk_health_compliance.arn
 
-  # Custom error pages for SPA routing
-  custom_error_response {
-    error_code         = 403
-    response_code      = 200
-    response_page_path = "/index.html"
-    error_caching_min_ttl = 0
-  }
-
+  # Custom error pages for SPA routing (only for HTML routes, not assets)
   custom_error_response {
     error_code         = 404
     response_code      = 200
