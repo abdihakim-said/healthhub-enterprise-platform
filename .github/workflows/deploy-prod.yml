@@ -42,6 +42,8 @@ jobs:
           role-session-name: HealthHub-Deploy-Prod
 
       - name: Wait for build pipeline completion
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           echo "🔍 Checking if build pipeline completed for commit ${{ github.sha }}"
           max_attempts=10
@@ -87,12 +89,16 @@ jobs:
 
       - name: Retry artifact download if failed
         if: steps.download_artifacts.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           echo "🔄 First download failed, waiting 30 seconds and retrying..."
           sleep 30
           gh run download $(gh run list --workflow="HealthHub Build Pipeline" --limit 1 --json databaseId --jq '.[0].databaseId') --name frontend-build-${{ github.sha }} --dir ./frontend-dist
 
       - name: Verify frontend artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           if [ ! -d "./frontend-dist" ] || [ -z "$(ls -A ./frontend-dist)" ]; then
             echo "❌ Frontend build artifacts not found or empty"
