@@ -4,7 +4,7 @@ on:
   workflow_run:
     workflows: ["HealthHub Build Pipeline"]
     types: [completed]
-    branches: ['feature/*']
+    branches: ['feature/*', 'main']  # All branches go through staging first
 
 env:
   AWS_REGION: us-east-1

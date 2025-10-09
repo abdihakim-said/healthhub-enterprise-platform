@@ -2,7 +2,7 @@ name: HealthHub Deploy Production
 
 on:
   workflow_run:
-    workflows: ["HealthHub Build Pipeline"]
+    workflows: ["HealthHub Deploy Staging"]
     types: [completed]
     branches: [main]
 
