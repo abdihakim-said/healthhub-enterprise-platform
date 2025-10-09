@@ -4,20 +4,27 @@
   "scripts": {
     "dev": "nodemon --exec \"sls events:offline\" -e \"js yml json ts cjs\"",
     "test": "NODE_ENV=test jest",
-    "deploy": "serverless deploy --stage dev --max-concurrency 1"
+    "deploy": "serverless deploy --stage dev --max-concurrency 1",
+    "test:smoke:staging": "node scripts/smoke-test.js staging",
+    "test:smoke:prod": "node scripts/smoke-test.js production"
   },
   "dependencies": {
     "@types/joi": "^17.2.3",
     "aws-lambda": "^1.0.7",
     "axios": "^1.5.1",
+    "bufferutil": "^4.0.9",
     "busboy": "^1.6.0",
     "copy-webpack-plugin": "^11.0.0",
     "dynamoose": "^2.5.0",
     "fork-ts-checker-webpack-plugin": "^9.0.2",
     "joi": "^17.13.3",
+    "microsoft-cognitiveservices-speech-sdk": "^1.46.0",
     "nodemon": "^3.0.1",
     "openai": "^4.38.0",
     "serverless": "^3.38.0",
+    "serverless-s3-cleaner": "^2.0.2",
+    "serverless-webpack": "^5.15.3",
+    "utf-8-validate": "^5.0.10",
     "uuid": "^8.3.2",
     "webpack": "^5.89.0",
     "webpack-node-externals": "^3.0.0"
