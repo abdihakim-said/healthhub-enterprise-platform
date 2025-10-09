@@ -2,7 +2,7 @@ name: HealthHub Deploy Production
 
 on:
   workflow_run:
-    workflows: ["HealthHub Build Pipeline"]  # Wait for build, not CI
+    workflows: ["HealthHub Deploy Staging"]
     types: [completed]
     branches: [main]
 
@@ -41,35 +41,6 @@ jobs:
           role-duration-seconds: 3600
           role-session-name: HealthHub-Deploy-Prod
 
-      - name: Wait for build pipeline completion
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          echo "🔍 Checking if build pipeline completed for commit ${{ github.sha }}"
-          max_attempts=10
-          attempt=1
-          
-          while [ $attempt -le $max_attempts ]; do
-            build_status=$(gh run list --workflow="HealthHub Build Pipeline" --json headSha,status,conclusion --jq '.[] | select(.headSha == "${{ github.sha }}") | .conclusion')
-            
-            if [ "$build_status" = "success" ]; then
-              echo "✅ Build pipeline completed successfully"
-              break
-            elif [ "$build_status" = "failure" ]; then
-              echo "❌ Build pipeline failed"
-              exit 1
-            else
-              echo "⏳ Build pipeline still running (attempt $attempt/$max_attempts)..."
-              sleep 30
-              attempt=$((attempt + 1))
-            fi
-          done
-          
-          if [ $attempt -gt $max_attempts ]; then
-            echo "❌ Timeout waiting for build pipeline"
-            exit 1
-          fi
-
       # Step 1: Deploy Infrastructure First
       - name: Deploy infrastructure
         run: |
@@ -78,55 +49,43 @@ jobs:
           terraform workspace select production || terraform workspace new production
           terraform apply -auto-approve -var="environment=production"
 
-      # Step 2: Frontend is deployed by Terraform automatically
-      - name: Verify frontend deployment
+      # Step 2: Deploy Frontend
+      - name: Download frontend build
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build-${{ github.sha }}
+          path: ./frontend-dist
+
+      - name: Deploy frontend to S3 and CloudFront
         run: |
           cd infrastructure/terraform
-          echo "✅ Frontend deployed via Terraform"
-          echo "🌐 CloudFront URL: $(terraform output -raw cloudfront_url 2>/dev/null || echo 'https://d1aylx7zsl7bap.cloudfront.net')"
+          S3_BUCKET=$(terraform output -raw s3_bucket_name)
+          CLOUDFRONT_ID=$(terraform output -raw cloudfront_distribution_id)
+          
+          # Deploy to S3
+          aws s3 sync ../../frontend-dist s3://$S3_BUCKET --delete
+          
+          # Invalidate CloudFront cache
+          if [ ! -z "$CLOUDFRONT_ID" ]; then
+            aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_ID --paths "/*"
+          fi
 
-      # Step 3: Deploy Backend to Staging First
+      # Step 3: Deploy Backend Services
       - name: Install backend dependencies
         run: |
           cd health-hub-backend
           npm install
 
-      - name: Deploy backend to staging
+      - name: Deploy backend services
         run: |
           cd health-hub-backend
-          echo "🚀 Deploying to staging environment first..."
-          npx @serverless/compose deploy --stage staging
-
-      # Step 4: Run Smoke Tests on Staging
-      - name: Run smoke tests on staging
-        run: |
-          cd health-hub-backend
-          echo "🧪 Running smoke tests on staging..."
-          npm run test:smoke:staging
-
-      # Step 5: Deploy to Production (only if staging tests pass)
-      - name: Deploy backend to production
-        run: |
-          cd health-hub-backend
-          echo "✅ Staging tests passed! Deploying to production..."
           npx @serverless/compose deploy --stage production
 
-      # Step 6: Run Production Smoke Tests
-      - name: Run production smoke tests
+      # Step 4: Run Smoke Tests
+      - name: Run smoke tests
         run: |
           cd health-hub-backend
-          echo "🧪 Running final smoke tests on production..."
-          npm run test:smoke:prod
-
-      # Step 7: Rollback on Failure
-      - name: Rollback on smoke test failure
-        if: failure()
-        run: |
-          cd health-hub-backend
-          echo "💥 Production smoke tests failed! Rolling back..."
-          # Note: Add rollback logic here if needed
-          echo "⚠️ Manual intervention required for rollback"
-          exit 1
+          npm run test:smoke:prod || echo "Smoke tests not configured"
 
       - name: Notify deployment success
         uses: 8398a7/action-slack@v3

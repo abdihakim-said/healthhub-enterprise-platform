@@ -1,0 +1,84 @@
+name: HealthHub Deploy Staging
+
+on:
+  workflow_run:
+    workflows: ["HealthHub Build Pipeline"]
+    types: [completed]
+    branches: ['feature/*', 'main']  # All branches go through staging first
+
+env:
+  AWS_REGION: us-east-1
+  NODE_VERSION: '18'
+
+jobs:
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.0
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # Step 1: Deploy Infrastructure to Staging
+      - name: Deploy staging infrastructure
+        run: |
+          cd infrastructure/terraform
+          terraform init
+          terraform workspace select staging || terraform workspace new staging
+          terraform apply -auto-approve -var="environment=staging"
+
+      # Step 2: Deploy Backend to Staging
+      - name: Install backend dependencies
+        run: |
+          cd health-hub-backend
+          npm install
+
+      - name: Deploy backend to staging
+        run: |
+          cd health-hub-backend
+          echo "🚀 Deploying to staging environment..."
+          npx @serverless/compose deploy --stage staging
+
+      # Step 3: Run Smoke Tests on Staging
+      - name: Run staging smoke tests
+        run: |
+          cd health-hub-backend
+          echo "🧪 Running smoke tests on staging..."
+          npm run test:smoke:staging
+
+      # Step 4: Success - Ready for Main Branch
+      - name: Staging validation complete
+        run: |
+          echo "✅ Feature branch validated on staging!"
+          echo "🚀 Ready to merge to main branch for production deployment"
+          echo "📊 All systems validated:"
+          echo "  - Infrastructure: ✅"
+          echo "  - Backend Services: ✅" 
+          echo "  - Smoke Tests: ✅"
+
+      # Step 5: Cleanup on Failure
+      - name: Cleanup staging on failure
+        if: failure()
+        run: |
+          echo "💥 Staging deployment failed - cleaning up..."
+          cd infrastructure/terraform
+          terraform workspace select staging
+          terraform destroy -auto-approve -var="environment=staging" || echo "Cleanup completed"
