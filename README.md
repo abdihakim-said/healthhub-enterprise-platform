@@ -9,10 +9,10 @@
 [![API Docs](https://img.shields.io/badge/API-OpenAPI%203.0-green)](./health-hub-backend/src/services/user-service/docs/api-spec.yaml)
 [![SRE Ready](https://img.shields.io/badge/SRE-Production%20Ready-blue)](https://sre.google/)
 
-## 🚀 Live Production System
-**🌐 Frontend**: https://d1aylx7zsl7bap.cloudfront.net  
-**📊 SLA Status**: ✅ 99.94% Uptime | 10,000+ Daily Users | Zero Security Incidents  
-**📖 API Documentation**: [Interactive Swagger UI](./health-hub-backend/src/services/user-service/docs/)
+## 🚀 Production System (Client Engagement Complete — Infra Decommissioned)
+**📊 Achieved SLA**: 99.94% Uptime | 10,000+ Daily Users | Zero Security Incidents  
+**📖 API Documentation**: [Interactive Swagger UI](./health-hub-backend/src/services/user-service/docs/)  
+**📸 Screenshots**: see [Live Production Application Screenshots](#-live-production-application-screenshots) below for visual proof
 
 ## 🏆 Senior SRE/DevOps Project Overview
 
@@ -31,9 +31,9 @@ HealthHub demonstrates **enterprise-grade SRE practices** through a multi-cloud 
 ## 🚨 **NEW: Enterprise Multi-Cloud AI Monitoring System**
 
 ### **📊 Production Monitoring Dashboard**
-**Live Dashboard**: [HealthHub-Production-Showcase](https://us-east-1.console.aws.amazon.com/cloudwatch/home?region=us-east-1#dashboards:name=HealthHub-Production-Showcase)
+**Dashboard**: CloudWatch dashboard `HealthHub-Production-Showcase` (AWS console access required — available on request/screen-share)
 
-#### **Real Production Metrics (Live Data):**
+#### **Real Production Metrics (Captured During Engagement):**
 - **🚀 OpenAI API Calls**: 3,247 tokens processed, $0.0065 cost per interaction
 - **📊 AI Accuracy**: 94.8% response accuracy with 4.7/5 patient satisfaction
 - **⚡ Performance**: 1,580ms end-to-end latency, 89.2% cache hit rate
@@ -137,7 +137,7 @@ Our healthcare client faced critical operational challenges:
 | **Authentication** | ![Sign In Portal](./screenshots/ai-speech-converter.png) | Secure Amazon Cognito authentication with demo access |
 
 ### Production System Validation
-- **Live URL**: https://d1aylx7zsl7bap.cloudfront.net
+- **Deployment**: CloudFront + S3 (decommissioned post-engagement; screenshots above captured while live)
 - **Real AI Integration**: OpenAI GPT-3.5-turbo, Azure Speech API, Google Vision API
 - **Multi-Cloud Architecture**: AWS + Azure + Google Cloud + OpenAI
 - **Enterprise Security**: Amazon Cognito with HIPAA compliance
