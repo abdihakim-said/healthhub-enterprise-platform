@@ -25,7 +25,7 @@ Small clinics want AI features (transcription, triage chat, multilingual output)
 ```mermaid
 flowchart LR
   U[Browser<br/>React + Vite] --> CF[CloudFront + S3]
-  U -->|JWT from Cognito| API[API Gateway HTTP APIs]
+  U -->|Cognito login| API[API Gateway HTTP APIs]
   API --> L1[user / patient / doctor /<br/>appointment services]
   API --> L2[ai-interaction service]
   API --> L3[transcription service]
