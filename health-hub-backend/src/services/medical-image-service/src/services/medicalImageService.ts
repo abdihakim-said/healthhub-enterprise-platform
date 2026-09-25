@@ -435,13 +435,13 @@ export class MedicalImageService {
       // Perform Google Vision analysis
       let analysisResults;
       if (this.googleCredentials && this.googleCredentials.project_id) {
-        // Real Google Vision API call would go here
+        // Placeholder result - this path does not call Google Vision
         analysisResults = {
           status: 'completed',
-          findings: ['Normal chest X-ray', 'No abnormalities detected'],
+          findings: ['Placeholder result (demo) - not a real analysis'],
           confidence: 0.92,
           timestamp: new Date().toISOString(),
-          googleVisionUsed: true
+          googleVisionUsed: false
         };
       } else {
         // Mock analysis for development
@@ -498,19 +498,19 @@ export class MedicalImageService {
   // Simplified method matching Virtual Assistant pattern
   async analyzeImageSimple(patientId: string, imageType: string): Promise<string> {
     try {
-      console.log('🔍 Real Google Vision API Analysis (Simplified)');
+      console.log('🔍 Demo image analysis (template, no Vision API call)');
       console.log(`Patient ID: ${patientId}`);
       console.log(`Image Type: ${imageType}`);
       console.log(`Timestamp: ${new Date().toISOString()}`);
 
-      // Simulate real Google Vision API processing
+      // Demo mode: returns a templated analysis, does NOT call Google Vision
       if (this.googleCredentials && this.googleCredentials.project_id) {
-        console.log('Making real Google Vision API call...');
+        console.log('Returning templated demo analysis');
         
         // Create sample medical analysis based on image type
         const medicalAnalysis = this.generateMedicalAnalysis(imageType);
         
-        return `🔍 Real Google Vision API Medical Analysis
+        return `🔍 Demo Image Analysis (template - not a diagnosis)
 
 Patient ID: ${patientId}
 Image Type: ${imageType}
@@ -519,8 +519,8 @@ Timestamp: ${new Date().toISOString()}
 Analysis Results:
 ${medicalAnalysis}
 
-Processed with Google Vision API
-Confidence: High (0.92)
+Generated from a template for demo purposes
+Not produced by Google Vision and not medical advice
 Status: Analysis Complete`;
       } else {
         throw new Error('Google Vision API credentials not configured');

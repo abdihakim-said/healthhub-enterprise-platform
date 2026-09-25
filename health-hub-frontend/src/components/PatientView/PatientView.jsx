@@ -105,7 +105,7 @@ const PatientView = ({ userId, onLogout }) => {
             System Status: All services operational
           </div>
           <div className="text-green-600">
-            99.94% Uptime | HIPAA Compliant
+            Portfolio demo - sample data only
           </div>
         </div>
       </div>

@@ -36,20 +36,20 @@ const LandingPage = ({ onGetStarted }) => {
           
           <div className="flex justify-center space-x-4 mb-12">
             <div className="bg-white p-4 rounded-lg shadow-md">
-              <div className="text-2xl font-bold text-blue-600">99.94%</div>
-              <div className="text-sm text-gray-600">Uptime</div>
+              <div className="text-2xl font-bold text-blue-600">3</div>
+              <div className="text-sm text-gray-600">AI providers</div>
             </div>
             <div className="bg-white p-4 rounded-lg shadow-md">
-              <div className="text-2xl font-bold text-green-600">98%</div>
-              <div className="text-sm text-gray-600">Accuracy</div>
+              <div className="text-2xl font-bold text-green-600">7</div>
+              <div className="text-sm text-gray-600">Serverless services</div>
             </div>
             <div className="bg-white p-4 rounded-lg shadow-md">
               <div className="text-2xl font-bold text-purple-600">29+</div>
               <div className="text-sm text-gray-600">Languages</div>
             </div>
             <div className="bg-white p-4 rounded-lg shadow-md">
-              <div className="text-2xl font-bold text-orange-600">10K+</div>
-              <div className="text-sm text-gray-600">Daily Users</div>
+              <div className="text-2xl font-bold text-orange-600">Demo</div>
+              <div className="text-sm text-gray-600">Sample data only</div>
             </div>
           </div>
 
@@ -72,7 +72,7 @@ const LandingPage = ({ onGetStarted }) => {
           <div className="bg-white p-6 rounded-lg shadow-md text-center">
             <Zap className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
             <h3 className="text-lg font-semibold mb-2">Medical Transcription</h3>
-            <p className="text-gray-600">98% accurate medical conversation transcription</p>
+            <p className="text-gray-600">Medical conversation transcription with Azure AI Speech</p>
           </div>
           
           <div className="bg-white p-6 rounded-lg shadow-md text-center">
@@ -115,7 +115,7 @@ const LandingPage = ({ onGetStarted }) => {
       {/* Footer */}
       <footer className="bg-gray-800 text-white py-8 mt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p>&copy; 2024 HealthHub. Enterprise Healthcare Platform. HIPAA Compliant.</p>
+          <p>&copy; 2024 HealthHub. Portfolio demo - not for real patient data.</p>
         </div>
       </footer>
     </div>

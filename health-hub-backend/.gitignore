@@ -163,3 +163,4 @@ CV_*.md
 INTERVIEW_*.md
 **/interview/
 **/marketing/
+.env.dev

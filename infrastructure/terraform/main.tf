@@ -23,8 +23,8 @@ terraform {
   }
   
   # Remote S3 backend configuration with workspace support
+  # Partial config: terraform init -backend-config="bucket=<your-state-bucket>"
   backend "s3" {
-    bucket         = "healthhub-terraform-state-880385175593"
     key            = "terraform.tfstate"
     region         = "us-east-1"
     encrypt        = true
@@ -71,7 +71,7 @@ variable "project_name" {
 variable "alert_email" {
   description = "Email address for alerts"
   type        = string
-  default     = "said.sre.dev@gmail.com"
+  default     = ""
 }
 
 variable "enable_uk_compliance" {

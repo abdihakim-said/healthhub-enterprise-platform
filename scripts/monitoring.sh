@@ -1,4 +1,5 @@
 #!/bin/bash
+AWS_ACCOUNT_ID="${AWS_ACCOUNT_ID:-$(aws sts get-caller-identity --query Account --output text)}"
 
 # HealthHub Monitoring and Alerting Script
 set -e
@@ -212,7 +213,7 @@ setup_alarms() {
         --threshold 10 \
         --comparison-operator "GreaterThanThreshold" \
         --evaluation-periods 2 \
-        --alarm-actions "arn:aws:sns:us-east-1:880385175593:healthhub-production-alerts"
+        --alarm-actions "arn:aws:sns:us-east-1:${AWS_ACCOUNT_ID}:healthhub-production-alerts"
     
     # High latency alarm
     aws cloudwatch put-metric-alarm \
@@ -225,7 +226,7 @@ setup_alarms() {
         --threshold 2000 \
         --comparison-operator "GreaterThanThreshold" \
         --evaluation-periods 2 \
-        --alarm-actions "arn:aws:sns:us-east-1:880385175593:healthhub-production-alerts"
+        --alarm-actions "arn:aws:sns:us-east-1:${AWS_ACCOUNT_ID}:healthhub-production-alerts"
     
     echo -e "${GREEN}✅ Alarms configured${NC}"
 }
