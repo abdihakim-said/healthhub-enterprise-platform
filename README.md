@@ -57,10 +57,20 @@ flowchart LR
 
 ## 4. Known limitations / what I'd do next
 
-This is a prototype, and the gaps below are exactly why:
+**Fixed since the first deploy**
 
-- **APIs have no authorizer.** The HTTP API routes (users, patients, images) are not protected by a Cognito JWT authorizer, and registration lets the caller choose their own role, including `doctor`. **This is the first thing to fix:** JWT authorizer on every route, role derived from Cognito groups, not the request body.
-- **IAM is `Resource: "*"`** in the service roles, CORS is `*`, and the Cognito password policy is 6 characters. All three need tightening to table ARNs, the app origin, and a real password policy.
+- **Every API route except `/login` and `/register` now requires a Cognito JWT.** One JWT authorizer is defined on the shared HTTP API (`user-service/serverless.yml`), and the other six services attach to it through the exported ID `HH-HttpApiAuthorizer-<stage>`. In total that's 39 protected routes and 2 public ones.
+- **Users can no longer choose their own role.** `/register` always creates a patient and returns 403 for `doctor` or `admin`. The app client can no longer write `custom:role`, so it can only be set through the admin API. Doctor accounts are created by an admin.
+- **`/users` is locked down.** List, create and delete are admin-only. Get and update are allowed for the user themselves or an admin. The role comes from the verified token's claims, never from the request.
+- **The minimum password length is 12** (was 6), in both Cognito and the sign-up form.
+- **Tests:** `user-service/src/__tests__/authorization.test.ts` covers role claims, self-vs-other access, admin-only routes, and refused doctor/admin self-registration.
+
+These changes are covered by unit tests and checked against the Serverless v3 schema. I haven't redeployed the stack since making them.
+
+**Still open**
+
+- **Record-level ownership is only enforced on `/users`.** Every route now needs a valid token, but the patient, appointment, transcription and image handlers don't yet check that the record belongs to the caller. A logged-in patient who knows another record's ID can still read it. Next: the same `getCaller` check in each service, with doctors limited to their own patients.
+- **IAM is `Resource: "*"`** in the service roles, and CORS is `*`. Both need tightening, to table ARNs and to the app's origin.
 - **Some AI paths are templated.** The main image path sends images to Google Vision's generic label detection, which is **not** a medical model. Other image and assistant paths return templated demo text, now labelled as such.
 - **No compliance work was done.** Real patient data would need a BAA/DPA with every AI provider, data residency decisions, audit logging, encryption with customer-managed keys, and a DPIA. That is a project in itself.
 - **CI uses long-lived AWS keys** (and the test job uses the prod keys). Next: GitHub OIDC with per-environment roles.

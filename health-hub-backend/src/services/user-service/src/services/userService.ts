@@ -13,6 +13,8 @@ class User extends Document {
   lastLogin?: Date;
 }
 
+export type CreateUserInput = Pick<User, "email" | "role"> & { password: string };
+
 // Create the Dynamoose schema
 const UserSchema = new dynamoose.Schema({
   id: {
@@ -56,9 +58,7 @@ export class UserService {
     this.cognito = new CognitoIdentityServiceProvider();
   }
 
-  async create(
-    data: Omit<User, "id" | "createdAt" | "lastLogin">
-  ): Promise<User> {
+  async create(data: CreateUserInput): Promise<User> {
     try {
       // Register user in Cognito
       const cognitoUser = await this.cognito
@@ -75,7 +75,7 @@ export class UserService {
       if (cognitoUser.User) {
         await this.cognito
           .adminSetUserPassword({
-            Password: data.password as string,
+            Password: data.password,
             UserPoolId: this.userPoolId,
             Username: data.email,
             Permanent: true,

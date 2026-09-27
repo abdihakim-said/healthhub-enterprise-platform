@@ -2,6 +2,7 @@ import { APIGatewayProxyHandler } from "aws-lambda";
 import { UserService } from "../services/userService";
 import { validateBody, validatePathParam } from "../middleware/validation";
 import { createUserSchema, updateUserSchema, userIdSchema } from "../validation/schemas";
+import { canAccessUser, forbidden, getCaller, isAdmin } from "../middleware/auth";
 
 const userService = new UserService(
   process.env.USER_POOL_ID!,
@@ -9,6 +10,7 @@ const userService = new UserService(
 );
 
 export const create: APIGatewayProxyHandler = async (event) => {
+  if (!isAdmin(getCaller(event))) return forbidden();
   try {
     const data = validateBody(createUserSchema)(event);
     const user = await userService.create(data);
@@ -29,6 +31,7 @@ export const create: APIGatewayProxyHandler = async (event) => {
 export const get: APIGatewayProxyHandler = async (event) => {
   try {
     const id = validatePathParam(userIdSchema)(event, 'id');
+    if (!canAccessUser(getCaller(event), id)) return forbidden();
     const user = await userService.get(id);
     if (!user) {
       return {
@@ -53,6 +56,7 @@ export const get: APIGatewayProxyHandler = async (event) => {
 export const update: APIGatewayProxyHandler = async (event) => {
   try {
     const id = validatePathParam(userIdSchema)(event, 'id');
+    if (!canAccessUser(getCaller(event), id)) return forbidden();
     const data = validateBody(updateUserSchema)(event);
     const user = await userService.update(id, data);
     return {
@@ -70,6 +74,7 @@ export const update: APIGatewayProxyHandler = async (event) => {
 };
 
 export const del: APIGatewayProxyHandler = async (event) => {
+  if (!isAdmin(getCaller(event))) return forbidden();
   try {
     const id = validatePathParam(userIdSchema)(event, 'id');
     await userService.delete(id);
@@ -88,6 +93,7 @@ export const del: APIGatewayProxyHandler = async (event) => {
 };
 
 export const list: APIGatewayProxyHandler = async (event) => {
+  if (!isAdmin(getCaller(event))) return forbidden();
   try {
     const users = await userService.list();
     return {

@@ -78,6 +78,11 @@ const PatientModel = dynamoose.model<Patient>(
   }
 );
 
+export type CreatePatientInput = Pick<
+  Patient,
+  "userId" | "firstName" | "lastName" | "dateOfBirth" | "gender" | "contactNumber" | "medicalHistory"
+>;
+
 export class PatientService {
   private cognito: CognitoIdentityServiceProvider;
 
@@ -85,9 +90,7 @@ export class PatientService {
     this.cognito = new CognitoIdentityServiceProvider();
   }
 
-  async create(
-    data: Omit<Patient, "id" | "createdAt" | "updatedAt">
-  ): Promise<Patient> {
+  async create(data: CreatePatientInput): Promise<Patient> {
     try {
       // Skip Cognito validation for now to allow direct patient creation
       // TODO: Re-enable when Cognito users are properly set up

@@ -28,8 +28,8 @@ const Register = ({ setIsRegistering }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (formData.password.length < 6) {
-      setPasswordError("Password must be at least 6 characters long");
+    if (formData.password.length < 12) {
+      setPasswordError("Password must be at least 12 characters long");
       return;
     }
     
@@ -116,19 +116,9 @@ const Register = ({ setIsRegistering }) => {
           <p className="text-red-500 text-sm mt-1">{passwordError}</p>
         )}
       </div>
-      <div>
-        <label className="block mb-1">Role:</label>
-        <select
-          name="role"
-          value={formData.role}
-          onChange={handleChange}
-          required
-          className="w-full p-2 border rounded"
-        >
-          <option value="patient">Patient</option>
-          <option value="doctor">Doctor</option>
-        </select>
-      </div>
+      <p className="text-sm text-gray-600">
+        You are registering as a patient. Doctor accounts are created by an administrator.
+      </p>
       <div>
         <label className="block mb-1">First Name:</label>
         <input
@@ -188,32 +178,6 @@ const Register = ({ setIsRegistering }) => {
           className="w-full p-2 border rounded"
         />
       </div>
-      {formData.role === "doctor" && (
-        <>
-          <div>
-            <label className="block mb-1">Specialization:</label>
-            <input
-              type="text"
-              name="specialization"
-              value={formData.specialization}
-              onChange={handleChange}
-              required
-              className="w-full p-2 border rounded"
-            />
-          </div>
-          <div>
-            <label className="block mb-1">License Number:</label>
-            <input
-              type="text"
-              name="licenseNumber"
-              value={formData.licenseNumber}
-              onChange={handleChange}
-              required
-              className="w-full p-2 border rounded"
-            />
-          </div>
-        </>
-      )}
       <button
         type="submit"
         className={`w-full p-2 text-white rounded ${
