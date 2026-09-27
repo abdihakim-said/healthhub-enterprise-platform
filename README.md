@@ -100,4 +100,4 @@ cd ../health-hub-frontend && npm install && npm run dev
 
 ---
 
-**Abdihakim Said**, AWS Solutions Architect · CKA. I build serverless and AI-integrated platforms on AWS, and I'm upfront about what it takes to make them production-ready. Contact details are on my [GitHub profile](https://github.com/abdihakim-said).
+**Abdihakim Said**, AWS Solutions Architect Associate · CKA. I build serverless and AI-integrated platforms on AWS, and I'm upfront about what it takes to make them production-ready. Contact details are on my [GitHub profile](https://github.com/abdihakim-said).
