@@ -46,6 +46,9 @@ functions:
       - httpApi:
           path: /transcriptions
           method: post
+          authorizer:
+            id:
+              "Fn::ImportValue": HH-HttpApiAuthorizer-${sls:stage}
 
   getTranscription:
     handler: src/handlers/transcription.get
@@ -53,6 +56,9 @@ functions:
       - httpApi:
           path: /transcriptions/{id}
           method: get
+          authorizer:
+            id:
+              "Fn::ImportValue": HH-HttpApiAuthorizer-${sls:stage}
 
   updateTranscription:
     handler: src/handlers/transcription.update
@@ -60,6 +66,9 @@ functions:
       - httpApi:
           path: /transcriptions/{id}
           method: put
+          authorizer:
+            id:
+              "Fn::ImportValue": HH-HttpApiAuthorizer-${sls:stage}
 
   deleteTranscription:
     handler: src/handlers/transcription.del
@@ -67,6 +76,9 @@ functions:
       - httpApi:
           path: /transcriptions/{id}
           method: delete
+          authorizer:
+            id:
+              "Fn::ImportValue": HH-HttpApiAuthorizer-${sls:stage}
 
   listTranscriptions:
     handler: src/handlers/transcription.list
@@ -74,6 +86,9 @@ functions:
       - httpApi:
           path: /transcriptions
           method: get
+          authorizer:
+            id:
+              "Fn::ImportValue": HH-HttpApiAuthorizer-${sls:stage}
 
   transcribeAudio:
     handler: src/handlers/transcription.transcribeAudio
@@ -81,4 +96,7 @@ functions:
       - httpApi:
           path: /transcriptions/transcribe
           method: post
+          authorizer:
+            id:
+              "Fn::ImportValue": HH-HttpApiAuthorizer-${sls:stage}
     payloadFormatVersion: "2.0"

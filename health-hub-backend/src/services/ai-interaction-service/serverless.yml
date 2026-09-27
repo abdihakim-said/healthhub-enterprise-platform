@@ -83,42 +83,63 @@ functions:
       - httpApi:
           path: /ai-interactions
           method: post
+          authorizer:
+            id:
+              "Fn::ImportValue": HH-HttpApiAuthorizer-${sls:stage}
   get:
     handler: src/handlers/aiInteraction.get
     events:
       - httpApi:
           path: /ai-interactions/{id}
           method: get
+          authorizer:
+            id:
+              "Fn::ImportValue": HH-HttpApiAuthorizer-${sls:stage}
   update:
     handler: src/handlers/aiInteraction.update
     events:
       - httpApi:
           path: /ai-interactions/{id}
           method: put
+          authorizer:
+            id:
+              "Fn::ImportValue": HH-HttpApiAuthorizer-${sls:stage}
   delete:
     handler: src/handlers/aiInteraction.del
     events:
       - httpApi:
           path: /ai-interactions/{id}
           method: delete
+          authorizer:
+            id:
+              "Fn::ImportValue": HH-HttpApiAuthorizer-${sls:stage}
   list:
     handler: src/handlers/aiInteraction.list
     events:
       - httpApi:
           path: /ai-interactions
           method: get
+          authorizer:
+            id:
+              "Fn::ImportValue": HH-HttpApiAuthorizer-${sls:stage}
   processVirtualAssistant:
     handler: src/handlers/aiInteraction.virtualAssistant
     events:
       - httpApi:
           path: /ai-interactions/virtual-assistant
           method: post
+          authorizer:
+            id:
+              "Fn::ImportValue": HH-HttpApiAuthorizer-${sls:stage}
   textToSpeech:
     handler: src/handlers/aiInteraction.textToSpeech
     events:
       - httpApi:
           path: /ai-interactions/text-to-speech
           method: post
+          authorizer:
+            id:
+              "Fn::ImportValue": HH-HttpApiAuthorizer-${sls:stage}
 
 resources:
   Resources:

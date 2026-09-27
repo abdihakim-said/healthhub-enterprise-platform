@@ -41,6 +41,9 @@ functions:
       - httpApi:
           path: /doctors
           method: post
+          authorizer:
+            id:
+              "Fn::ImportValue": HH-HttpApiAuthorizer-${sls:stage}
 
   getDoctor:
     handler: src/handlers/doctor.get
@@ -48,6 +51,9 @@ functions:
       - httpApi:
           path: /doctors/{id}
           method: get
+          authorizer:
+            id:
+              "Fn::ImportValue": HH-HttpApiAuthorizer-${sls:stage}
 
   updateDoctor:
     handler: src/handlers/doctor.update
@@ -55,6 +61,9 @@ functions:
       - httpApi:
           path: /doctors/{id}
           method: put
+          authorizer:
+            id:
+              "Fn::ImportValue": HH-HttpApiAuthorizer-${sls:stage}
 
   deleteDoctor:
     handler: src/handlers/doctor.del
@@ -62,6 +71,9 @@ functions:
       - httpApi:
           path: /doctors/{id}
           method: delete
+          authorizer:
+            id:
+              "Fn::ImportValue": HH-HttpApiAuthorizer-${sls:stage}
 
   listDoctors:
     handler: src/handlers/doctor.list
@@ -69,6 +81,9 @@ functions:
       - httpApi:
           path: /doctors
           method: get
+          authorizer:
+            id:
+              "Fn::ImportValue": HH-HttpApiAuthorizer-${sls:stage}
 
 resources:
   Resources:

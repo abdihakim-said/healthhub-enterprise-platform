@@ -70,6 +70,9 @@ functions:
       - httpApi:
           path: /medical-images
           method: post
+          authorizer:
+            id:
+              "Fn::ImportValue": HH-HttpApiAuthorizer-${sls:stage}
 
   getImage:
     handler: src/handlers/medicalImage.get
@@ -77,6 +80,9 @@ functions:
       - httpApi:
           path: /medical-images/{id}
           method: get
+          authorizer:
+            id:
+              "Fn::ImportValue": HH-HttpApiAuthorizer-${sls:stage}
 
   updateImage:
     handler: src/handlers/medicalImage.update
@@ -84,6 +90,9 @@ functions:
       - httpApi:
           path: /medical-images/{id}
           method: put
+          authorizer:
+            id:
+              "Fn::ImportValue": HH-HttpApiAuthorizer-${sls:stage}
 
   deleteImage:
     handler: src/handlers/medicalImage.remove
@@ -91,6 +100,9 @@ functions:
       - httpApi:
           path: /medical-images/{id}
           method: delete
+          authorizer:
+            id:
+              "Fn::ImportValue": HH-HttpApiAuthorizer-${sls:stage}
           
 
   listImages:
@@ -99,6 +111,9 @@ functions:
       - httpApi:
           path: /medical-images
           method: get
+          authorizer:
+            id:
+              "Fn::ImportValue": HH-HttpApiAuthorizer-${sls:stage}
           
 
   analyzeImage:
@@ -107,6 +122,9 @@ functions:
       - httpApi:
           path: /medical-images/{id}/analyze
           method: post
+          authorizer:
+            id:
+              "Fn::ImportValue": HH-HttpApiAuthorizer-${sls:stage}
           
 
 resources:

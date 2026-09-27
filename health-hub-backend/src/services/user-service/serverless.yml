@@ -47,6 +47,19 @@ provider:
   httpApi:
     useProviderTags: true
     cors: true
+    authorizers:
+      cognitoJwt:
+        type: jwt
+        identitySource: $request.header.Authorization
+        issuerUrl:
+          Fn::Join:
+            - ""
+            - - "https://cognito-idp."
+              - ${self:provider.region}
+              - ".amazonaws.com/"
+              - Ref: UserPool
+        audience:
+          - Ref: UserClient
 
 functions:
   createUser:
@@ -55,6 +68,8 @@ functions:
       - httpApi:
           path: /users
           method: post
+          authorizer:
+            name: cognitoJwt
 
   getUser:
     handler: src/handlers/user.get
@@ -62,6 +77,8 @@ functions:
       - httpApi:
           path: /users/{id}
           method: get
+          authorizer:
+            name: cognitoJwt
 
   updateUser:
     handler: src/handlers/user.update
@@ -69,6 +86,8 @@ functions:
       - httpApi:
           path: /users/{id}
           method: put
+          authorizer:
+            name: cognitoJwt
 
   deleteUser:
     handler: src/handlers/user.del
@@ -76,6 +95,8 @@ functions:
       - httpApi:
           path: /users/{id}
           method: delete
+          authorizer:
+            name: cognitoJwt
 
   listUsers:
     handler: src/handlers/user.list
@@ -83,6 +104,8 @@ functions:
       - httpApi:
           path: /users
           method: get
+          authorizer:
+            name: cognitoJwt
 
   login:
     handler: src/handlers/auth.login
@@ -145,7 +168,7 @@ resources:
           My: "true"
         Policies:
           PasswordPolicy:
-            MinimumLength: 6
+            MinimumLength: 12
         AutoVerifiedAttributes: ["email"]
 
     UserClient:
@@ -159,6 +182,13 @@ resources:
         IdTokenValidity: 24
         ExplicitAuthFlows:
           - "ADMIN_NO_SRP_AUTH"
+        # Users may not edit custom:role themselves; only the backend (admin API) sets it.
+        ReadAttributes:
+          - email
+          - custom:role
+          - custom:id
+        WriteAttributes:
+          - email
 
   # Outputs:
   #   HHApiId:
@@ -177,3 +207,7 @@ resources:
       Value: !Ref UserPool
       Export:
         Name: HH-UserPool-${sls:stage}
+    HttpApiAuthorizerId:
+      Value: !Ref HttpApiAuthorizerCognitoJwt
+      Export:
+        Name: HH-HttpApiAuthorizer-${sls:stage}
