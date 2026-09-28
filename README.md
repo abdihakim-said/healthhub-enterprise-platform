@@ -10,9 +10,7 @@ It also uses **Amazon Polly/Translate** for multilingual speech. There are 7 Lam
 
 > **Published in anonymised form, with sample data only.** Employer and client details, data and credentials have been removed. This public version is **not** HIPAA or NHS compliant as published; section 4 lists what it needs before it handles real health data.
 
-| Medical transcription (Azure AI Speech) | Virtual assistant (OpenAI) |
-|---|---|
-| ![Transcription](screenshots/azure-ai-transcription.png) | ![Assistant](screenshots/appointment-booking1.png) |
+![HealthHub walkthrough: dashboard, Azure transcription, Polly speech, OpenAI assistant booking an appointment](docs/app-tour.gif)
 
 ---
 
@@ -21,6 +19,10 @@ It also uses **Amazon Polly/Translate** for multilingual speech. There are 7 Lam
 Small clinics want AI features (transcription, triage chat, multilingual output) but don't want to run GPU infrastructure or pick a single AI vendor. This platform explores how far a **pay-per-request serverless backend** can go when it orchestrates managed AI APIs from three clouds, and what that costs in complexity: secrets, latency, failure modes.
 
 ## 2. Architecture
+
+![AWS architecture](generated-diagrams/healthhub-aws-architecture.png)
+
+Request flow:
 
 ```mermaid
 flowchart LR
