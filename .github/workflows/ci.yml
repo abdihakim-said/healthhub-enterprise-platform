@@ -5,6 +5,7 @@ on:
     branches: [main, develop, 'feature/*']
   pull_request:
     branches: [main, develop]
+  workflow_dispatch:
 
 env:
   AWS_REGION: us-east-1
@@ -13,6 +14,34 @@ env:
 jobs:
   test:
     name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          cd health-hub-backend
+          npm install
+
+      - name: Run unit tests
+        run: |
+          cd health-hub-backend
+          npm test -- --testPathIgnorePatterns=".*integration.test.ts"
+        env:
+          NODE_ENV: test
+          AWS_REGION: ${{ env.AWS_REGION }}
+
+  # Hits real DynamoDB tables, so it only runs when started by hand (Actions -> Run workflow).
+  integration:
+    name: Integration Tests (manual)
+    if: github.event_name == 'workflow_dispatch'
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -37,18 +66,10 @@ jobs:
           cd health-hub-backend
           npm install
 
-      - name: Run unit tests
-        run: |
-          cd health-hub-backend
-          npm test -- --testPathIgnorePatterns=".*integration.test.ts"
-        env:
-          NODE_ENV: test
-          AWS_REGION: ${{ env.AWS_REGION }}
-
       - name: Run integration tests
         run: |
           cd health-hub-backend
-          npm test -- --testNamePattern="integration" || echo "Integration tests completed"
+          npm test -- --testNamePattern="integration"
         env:
           NODE_ENV: test
           AWS_REGION: ${{ env.AWS_REGION }}

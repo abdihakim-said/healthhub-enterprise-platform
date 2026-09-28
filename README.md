@@ -75,7 +75,7 @@ These changes are covered by unit tests and checked against the Serverless v3 sc
 - **IAM is `Resource: "*"`** in the service roles, and CORS is `*`. Both need tightening, to table ARNs and to the app's origin.
 - **Some AI paths are templated.** The main image path sends images to Google Vision's generic label detection, which is **not** a medical model. Other image and assistant paths return templated demo text, now labelled as such.
 - **No compliance work was done.** Real patient data would need a BAA/DPA with every AI provider, data residency decisions, audit logging, encryption with customer-managed keys, and a DPIA. That is a project in itself.
-- **CI uses long-lived AWS keys** (and the test job uses the prod keys). Next: GitHub OIDC with per-environment roles.
+- **Deploys use long-lived AWS keys.** Unit tests run on every push with no AWS credentials. Integration tests (real DynamoDB) and the deploy pipelines run only when turned on by hand (`workflow_dispatch`, or the `DEPLOY_ENABLED` repository variable), because the environment has been torn down. Next: GitHub OIDC with per-environment roles.
 - **The staging job runs `terraform destroy` on failure.** It's convenient in dev, but dangerous as a pattern.
 - **Code duplication.** There are parallel `.js`/`.ts` utilities and several `serverless*.yml` variants per service.
 
