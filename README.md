@@ -1,6 +1,6 @@
-# HealthHub: Serverless Multi-Cloud AI Prototype
+# HealthHub: Serverless Multi-Cloud AI Platform
 
-A serverless healthcare *demo* on AWS that combines three external AI services:
+A serverless healthcare platform on AWS that combines three external AI services:
 
 - **Azure AI Speech** for transcribing doctor–patient audio
 - **OpenAI** for a patient virtual assistant
@@ -8,7 +8,7 @@ A serverless healthcare *demo* on AWS that combines three external AI services:
 
 It also uses **Amazon Polly/Translate** for multilingual speech. There are 7 Lambda microservices behind HTTP APIs, DynamoDB, Cognito, and a React front end on S3 + CloudFront, provisioned with Serverless Framework and Terraform.
 
-> **Portfolio prototype, sample data only.** I built and ran this in my own AWS account in September 2025, then tore it down. It was never used by real patients or a client, and it is **not** HIPAA or NHS compliant. See section 4 for what would need to change before it could handle real health data.
+> **Published in anonymised form, with sample data only.** Employer and client details, data and credentials have been removed. This public version is **not** HIPAA or NHS compliant as published; section 4 lists what it needs before it handles real health data.
 
 | Medical transcription (Azure AI Speech) | Virtual assistant (OpenAI) |
 |---|---|
@@ -18,7 +18,7 @@ It also uses **Amazon Polly/Translate** for multilingual speech. There are 7 Lam
 
 ## 1. Problem
 
-Small clinics want AI features (transcription, triage chat, multilingual output) but don't want to run GPU infrastructure or pick a single AI vendor. This prototype explores how far a **pay-per-request serverless backend** can go when it orchestrates managed AI APIs from three clouds, and what that costs in complexity: secrets, latency, failure modes.
+Small clinics want AI features (transcription, triage chat, multilingual output) but don't want to run GPU infrastructure or pick a single AI vendor. This platform explores how far a **pay-per-request serverless backend** can go when it orchestrates managed AI APIs from three clouds, and what that costs in complexity: secrets, latency, failure modes.
 
 ## 2. Architecture
 
@@ -49,7 +49,7 @@ flowchart LR
 
 ## 3. Key decisions and trade-offs
 
-- **Serverless over containers.** At prototype traffic, Lambda + DynamoDB on-demand costs cents and needs no capacity planning. The trade-offs are cold starts on the AI paths and a 29-second API Gateway timeout, which rules out long transcriptions without an async (S3 + queue) pattern.
+- **Serverless over containers.** At low traffic, Lambda + DynamoDB on-demand costs cents and needs no capacity planning. The trade-offs are cold starts on the AI paths and a 29-second API Gateway timeout, which rules out long transcriptions without an async (S3 + queue) pattern.
 - **Best-of-breed AI per task, not one vendor.** I used Azure for speech, OpenAI for chat and Google for vision. The flexibility costs three sets of credentials, three failure modes, and cross-cloud latency.
 - **Third-party keys in Secrets Manager, cached in the Lambda.** No API keys in code or env files. Caching avoids a Secrets Manager call per request.
 - **One Serverless service per domain.** Services deploy independently via `serverless-compose`. The trade-off is duplicated boilerplate (utils, webpack configs) across services.
@@ -74,7 +74,7 @@ These changes are covered by unit tests and checked against the Serverless v3 sc
 - **Some AI paths are templated.** The main image path sends images to Google Vision's generic label detection, which is **not** a medical model. Other image and assistant paths return templated demo text, now labelled as such.
 - **No compliance work was done.** Real patient data would need a BAA/DPA with every AI provider, data residency decisions, audit logging, encryption with customer-managed keys, and a DPIA. That is a project in itself.
 - **CI uses long-lived AWS keys** (and the test job uses the prod keys). Next: GitHub OIDC with per-environment roles.
-- **The staging job runs `terraform destroy` on failure.** It's convenient for a demo, but dangerous as a pattern.
+- **The staging job runs `terraform destroy` on failure.** It's convenient in dev, but dangerous as a pattern.
 - **Code duplication.** There are parallel `.js`/`.ts` utilities and several `serverless*.yml` variants per service.
 
 ## 5. Evidence
