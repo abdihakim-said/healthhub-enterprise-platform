@@ -121,14 +121,14 @@ echo -e "Timestamp: ${YELLOW}$(date)${NC}"
 echo -e "\n${BLUE}📡 API Endpoints:${NC}"
 if [ "$ENVIRONMENT" = "prod" ]; then
     echo "Frontend: https://d3dxe0vf0g9rlg.cloudfront.net"
-    echo "User API: https://eqd8yoyih2.execute-api.us-east-1.amazonaws.com"
-    echo "AI API: https://j6doxodkt1.execute-api.us-east-1.amazonaws.com"
-    echo "Medical API: https://2zk81heev4.execute-api.us-east-1.amazonaws.com"
+    echo "User API: https://YOUR_API_ID.execute-api.us-east-1.amazonaws.com"
+    echo "AI API: https://YOUR_API_ID.execute-api.us-east-1.amazonaws.com"
+    echo "Medical API: https://YOUR_API_ID.execute-api.us-east-1.amazonaws.com"
 else
     echo "Frontend: https://d3dxe0vf0g9rlg.cloudfront.net"
-    echo "User API: https://eqd8yoyih2.execute-api.us-east-1.amazonaws.com"
-    echo "AI API: https://j6doxodkt1.execute-api.us-east-1.amazonaws.com"
-    echo "Medical API: https://2zk81heev4.execute-api.us-east-1.amazonaws.com"
+    echo "User API: https://YOUR_API_ID.execute-api.us-east-1.amazonaws.com"
+    echo "AI API: https://YOUR_API_ID.execute-api.us-east-1.amazonaws.com"
+    echo "Medical API: https://YOUR_API_ID.execute-api.us-east-1.amazonaws.com"
 fi
 
 echo -e "\n${GREEN}✅ Deployment completed successfully!${NC}"

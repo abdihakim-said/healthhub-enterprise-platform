@@ -5,11 +5,11 @@ const axios = require('axios');
 const ENDPOINTS = {
   staging: {
     frontend: 'https://d1aylx7zsl7bap.cloudfront.net',
-    api: 'https://eqd8yoyih2.execute-api.us-east-1.amazonaws.com'
+    api: 'https://YOUR_API_ID.execute-api.us-east-1.amazonaws.com'
   },
   production: {
     frontend: 'https://d1aylx7zsl7bap.cloudfront.net',
-    api: 'https://eqd8yoyih2.execute-api.us-east-1.amazonaws.com'
+    api: 'https://YOUR_API_ID.execute-api.us-east-1.amazonaws.com'
   }
 };
 

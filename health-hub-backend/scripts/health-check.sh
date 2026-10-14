@@ -16,14 +16,14 @@ NC='\033[0m' # No Color
 # API endpoints based on environment
 if [ "$ENVIRONMENT" = "prod" ]; then
     FRONTEND_URL="https://d3dxe0vf0g9rlg.cloudfront.net"
-    USER_API="https://eqd8yoyih2.execute-api.us-east-1.amazonaws.com"
-    AI_API="https://j6doxodkt1.execute-api.us-east-1.amazonaws.com"
-    MEDICAL_API="https://2zk81heev4.execute-api.us-east-1.amazonaws.com"
+    USER_API="https://YOUR_API_ID.execute-api.us-east-1.amazonaws.com"
+    AI_API="https://YOUR_API_ID.execute-api.us-east-1.amazonaws.com"
+    MEDICAL_API="https://YOUR_API_ID.execute-api.us-east-1.amazonaws.com"
 else
     FRONTEND_URL="https://d3dxe0vf0g9rlg.cloudfront.net"
-    USER_API="https://eqd8yoyih2.execute-api.us-east-1.amazonaws.com"
-    AI_API="https://j6doxodkt1.execute-api.us-east-1.amazonaws.com"
-    MEDICAL_API="https://2zk81heev4.execute-api.us-east-1.amazonaws.com"
+    USER_API="https://YOUR_API_ID.execute-api.us-east-1.amazonaws.com"
+    AI_API="https://YOUR_API_ID.execute-api.us-east-1.amazonaws.com"
+    MEDICAL_API="https://YOUR_API_ID.execute-api.us-east-1.amazonaws.com"
 fi
 
 echo -e "${YELLOW}🏥 HealthHub Health Check - Environment: $ENVIRONMENT${NC}"

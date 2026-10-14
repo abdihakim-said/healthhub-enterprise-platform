@@ -16,19 +16,19 @@ variable "aws_region" {
 variable "api_gateway_url" {
   description = "API Gateway URL for the backend"
   type        = string
-  default     = "https://eqd8yoyih2.execute-api.us-east-1.amazonaws.com"
+  default     = "https://YOUR_API_ID.execute-api.us-east-1.amazonaws.com"
 }
 
 variable "ai_api_gateway_url" {
   description = "AI API Gateway URL for AI services"
   type        = string
-  default     = "https://j6doxodkt1.execute-api.us-east-1.amazonaws.com"
+  default     = "https://YOUR_API_ID.execute-api.us-east-1.amazonaws.com"
 }
 
 variable "medical_api_gateway_url" {
   description = "Medical API Gateway URL for medical image services"
   type        = string
-  default     = "https://2zk81heev4.execute-api.us-east-1.amazonaws.com"
+  default     = "https://YOUR_API_ID.execute-api.us-east-1.amazonaws.com"
 }
 
 variable "waf_web_acl_arn" {

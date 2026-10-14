@@ -9,11 +9,11 @@ curl -s -o /dev/null -w "Status: %{http_code}\n" https://d1aylx7zsl7bap.cloudfro
 
 # API Gateway Check
 echo "🔗 API Gateway Status:"
-curl -s -o /dev/null -w "Status: %{http_code}\n" https://cnc7dkr1sb.execute-api.us-east-1.amazonaws.com/users
+curl -s -o /dev/null -w "Status: %{http_code}\n" https://YOUR_API_ID.execute-api.us-east-1.amazonaws.com/users
 
 # User Count Check
 echo "👥 Active Users:"
-curl -s https://cnc7dkr1sb.execute-api.us-east-1.amazonaws.com/users | jq '. | length' 2>/dev/null || echo "API response received"
+curl -s https://YOUR_API_ID.execute-api.us-east-1.amazonaws.com/users | jq '. | length' 2>/dev/null || echo "API response received"
 
 # Lambda Function Check
 echo "⚡ Lambda Functions:"

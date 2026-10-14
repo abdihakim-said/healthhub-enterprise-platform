@@ -70,11 +70,11 @@ logs: ## Show recent logs for AI service
 api-test: ## Test API endpoints
 	@echo "$(YELLOW)🧪 Testing API endpoints...$(NC)"
 	@echo "Testing Virtual Assistant..."
-	curl -X POST "https://j6doxodkt1.execute-api.us-east-1.amazonaws.com/ai-interactions/virtual-assistant" \
+	curl -X POST "https://YOUR_API_ID.execute-api.us-east-1.amazonaws.com/ai-interactions/virtual-assistant" \
 		-H "Content-Type: application/json" \
 		-d '{"userId": "test", "message": "Hello", "type": "virtualAssistant"}' | jq .
 	@echo "\nTesting Text-to-Speech..."
-	curl -X POST "https://j6doxodkt1.execute-api.us-east-1.amazonaws.com/ai-interactions/text-to-speech" \
+	curl -X POST "https://YOUR_API_ID.execute-api.us-east-1.amazonaws.com/ai-interactions/text-to-speech" \
 		-H "Content-Type: application/json" \
 		-d '{"text": "Hello world", "language": "en"}' | jq .
 
@@ -111,9 +111,9 @@ status: ## Show project status
 	@echo "=================================="
 	@echo "Environment: $(ENV)"
 	@echo "Frontend URL: https://d3dxe0vf0g9rlg.cloudfront.net"
-	@echo "User API: https://eqd8yoyih2.execute-api.us-east-1.amazonaws.com"
-	@echo "AI API: https://j6doxodkt1.execute-api.us-east-1.amazonaws.com"
-	@echo "Medical API: https://2zk81heev4.execute-api.us-east-1.amazonaws.com"
+	@echo "User API: https://YOUR_API_ID.execute-api.us-east-1.amazonaws.com"
+	@echo "AI API: https://YOUR_API_ID.execute-api.us-east-1.amazonaws.com"
+	@echo "Medical API: https://YOUR_API_ID.execute-api.us-east-1.amazonaws.com"
 	@echo ""
 	@echo "$(GREEN)✅ All systems operational$(NC)"
 

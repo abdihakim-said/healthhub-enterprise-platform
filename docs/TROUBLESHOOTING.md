@@ -3,7 +3,7 @@
 ## 🚨 Emergency Response
 
 ### System Down (P0)
-1. **Check status**: `curl https://cnc7dkr1sb.execute-api.us-east-1.amazonaws.com/health`
+1. **Check status**: `curl https://YOUR_API_ID.execute-api.us-east-1.amazonaws.com/health`
 2. **View dashboards**: CloudWatch HealthHub dashboard
 3. **Check logs**: `aws logs tail /aws/lambda/user-service --follow`
 4. **Rollback if needed**: `git revert <commit> && npm run deploy:prod`
@@ -19,7 +19,7 @@
 **Symptoms**: 401 errors, login failures
 ```bash
 # Check Cognito status
-aws cognito-idp describe-user-pool --user-pool-id us-east-1_WcEpxc9pE
+aws cognito-idp describe-user-pool --user-pool-id YOUR_USER_POOL_ID
 
 # Verify JWT tokens
 jwt-cli decode <token>
@@ -187,7 +187,7 @@ aws config get-compliance-details-by-config-rule \
 ### Health Checks
 ```bash
 # Backend health
-curl https://cnc7dkr1sb.execute-api.us-east-1.amazonaws.com/health
+curl https://YOUR_API_ID.execute-api.us-east-1.amazonaws.com/health
 
 # Database connectivity
 aws dynamodb describe-table --table-name HealthHub-Users-Production

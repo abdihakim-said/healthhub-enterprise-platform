@@ -1,7 +1,7 @@
 # 🔌 HealthHub API Documentation
 
 ## Base URLs
-- **Production**: `https://cnc7dkr1sb.execute-api.us-east-1.amazonaws.com`
+- **Production**: `https://YOUR_API_ID.execute-api.us-east-1.amazonaws.com`
 - **Frontend**: `https://d3dxe0vf0g9rlg.cloudfront.net`
 
 ## Authentication
